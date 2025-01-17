@@ -99,6 +99,7 @@ export default {
         this.username = "";
         this.password = "";
         this.email = "";
+        this.$router.push("/dashboard");
       }
       } catch(error) {
         if (error.response) {
@@ -111,7 +112,7 @@ export default {
   },
   mounted() {
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user.token){
+    if (user && user.token){
       this.$router.push("/dashboard");
     }
   }

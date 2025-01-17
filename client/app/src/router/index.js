@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import AppHome from '../components/AppHome.vue';
 import NotFoundPage from '@/components/NotFoundPage.vue';
 import ContactUs from '@/components/ContactUs.vue';
-import MessageList from '@/components/MessageList.vue';
+import MessagesPage from '@/components/MessagesPage.vue';
 import LoginPage from '@/components/LoginPage.vue';
 import RegisterPage from '@/components/RegisterPage.vue';
 import TerminateAccount from '@/components/TerminateAccount.vue';
@@ -11,24 +11,28 @@ import TermsPage from '@/components/TermsPage.vue';
 import DashboardPage from '@/components/DashboardPage.vue';
 import FinishedList from '@/components/FinishedList.vue';
 import UnansweredList from '@/components/UnansweredList.vue';
-import MessageHistoryPage from '@/components/MessageHistoryPage.vue';
+import TicketSearchPage from '@/components/TicketSearchPage.vue';
+import TicketHistoryPage from '@/components/TicketHistoryPage.vue';
 import AdminRolesPage from '@/components/AdminRolesPage.vue';
+import NewTicketPage from '@/components/NewTicketPage.vue';
 
 const routes = [
   { path: '/', name: 'AppHome', component: AppHome },
   { path: '/:catchAll(.*)', name: 'NotFoundPage', component: NotFoundPage},
   { path: '/contact', name: 'ContactUs', component: ContactUs},
-  { path: '/messages', name: 'MessageList', component: MessageList},
+  { path: '/messages', name: 'MessagesPage', component: MessagesPage},
   { path: '/login', name: 'LoginPage', component: LoginPage},
   { path: '/register', name: 'RegisterPage', component: RegisterPage},
   { path: '/terminate', name: 'TerminateAccount', component: TerminateAccount},
   { path: '/policy', name: 'PrivacyPolicyPage', component: PrivacyPolicyPage},
   { path: '/terms', name: 'TermsPage', component: TermsPage},
   { path: '/dashboard', name: 'DashboardPage', component: DashboardPage, meta: { requiresAuth: true }},
-  { path: '/finished', name: 'FinishedList', component: FinishedList, meta: {requiresAdmin: true}},
-  { path: '/pending', name: 'UnansweredList', component: UnansweredList, meta: {requiresSupport: true}},
-  { path: '/history', name: 'MessageHistoryPage', component: MessageHistoryPage, meta: {requiresSupport: true}},
-  { path: '/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true}}
+  { path: '/tickets/search', name: 'TicketSearchPage', component: TicketSearchPage, meta: {requiresAuth: true }},
+  { path: '/tickets/history', name: 'TicketHistoryPage', component: TicketHistoryPage, meta: {requiresAuth: true }},
+  { path: '/tickets/new', name: 'NewTicketPage', component: NewTicketPage },
+  { path: '/finished', name: 'FinishedList', component: FinishedList, meta: {requiresAdmin: true }},
+  { path: '/pending', name: 'UnansweredList', component: UnansweredList, meta: {requiresSupport: true }},
+  { path: '/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true }}
 ];
 
 const router = createRouter({
@@ -82,9 +86,6 @@ router.beforeEach((to, from, next) => {
       return next;
     }
   }
-
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-  const user = JSON.parse(localStorage.getItem("user"));
 
   if (requiresAuth && (!user || !user.token)) {
     next("/login");

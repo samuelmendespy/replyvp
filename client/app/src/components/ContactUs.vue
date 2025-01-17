@@ -73,7 +73,7 @@ export default {
 <style scoped>
 body {
   background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
-  font-family: 'Arial', sans-serif;
+  font-family: "Arial", sans-serif;
 }
 .contact-form {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);

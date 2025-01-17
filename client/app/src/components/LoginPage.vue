@@ -20,14 +20,15 @@
               <div class="mb-3">
                 <label for="password" class="form-label">Senha</label>
                 <input
-                  type="password"  id="password"
+                  type="password"
+                  id="password"
                   class="form-control"
                   v-model="password"
                   placeholder="Digite sua senha"
                   required
                 />
                 <p class="mt-2">
-                Não consegue entrar em sua conta? <a href="#">Recuperar acesso</a>
+                  Não consegue entrar em sua conta? <a href="#">Recuperar acesso</a>
                 </p>
               </div>
               <div v-if="error" class="alert alert-danger mt-2" role="alert">
@@ -37,7 +38,8 @@
                 <button type="submit" class="btn btn-primary">Fazer login</button>
               </div>
               <p class="text-center">
-                Ainda não tem cadastro? <router-link to="/register">Cadastre-se</router-link>
+                Ainda não tem cadastro?
+                <router-link to="/register">Cadastre-se</router-link>
               </p>
             </form>
           </div>
@@ -48,20 +50,20 @@
 </template>
 
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
-  name: 'LoginPage',
+  name: "LoginPage",
   data() {
     return {
       username: "",
       password: "",
-      error: null
+      error: null,
     };
   },
   mounted() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.token){
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.token) {
       this.$router.push("/dashboard");
     }
   },
@@ -78,12 +80,15 @@ export default {
           const user = response.data.user;
           const token = response.data.token;
 
-          localStorage.setItem('user', JSON.stringify({
-            username: user.username,
-            email: user.email,
-            roles: user.roles,
-            token: token,
-          }));
+          localStorage.setItem(
+            "user",
+            JSON.stringify({
+              username: user.username,
+              email: user.email,
+              roles: user.roles,
+              token: token,
+            })
+          );
 
           this.$router.push("/dashboard");
         } else {

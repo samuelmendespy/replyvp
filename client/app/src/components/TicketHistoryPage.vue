@@ -1,13 +1,13 @@
 <template>
   <div class="container py-5">
-    <h2 class="text-center mb-4">Mensagens Não Respondidas</h2>
+    <h2 class="text-center mb-4">Tickets gerados Recebidas</h2>
     <table class="table table-striped table-bordered">
       <thead class="table-dark">
         <tr>
-          <th>Cliente</th>
-          <th>Reincidente</th>
+          <th>ID</th>
           <th>Assunto</th>
-          <th>Última mensagem</th>
+          <th>Status</th>
+          <th>Horário de Envio</th>
         </tr>
       </thead>
       <tbody>
@@ -29,7 +29,7 @@
 
 <script>
 export default {
-  name: "FinishedList",
+  name: "TicketHistoryPage",
   props: {
     messages: {
       type: Array,

@@ -1,18 +1,6 @@
 CREATE DATABASE IF NOT EXISTS api;
 USE api;
 
-CREATE TABLE IF NOT EXISTS messages (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    content VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-INSERT INTO messages (content)
-VALUES
-    ('Hello World!'),
-    ('Hello!'),
-    ('Hello World!!');
-
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
@@ -22,9 +10,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 INSERT INTO users (username, email, password) VALUES
-('adm', 'Xtest@testmail.com', '$2y$12$WmsHcmLZh8uArpDIy8MeVOJmDFnpkO7wMdADfD0mfC8HcZ0y6C.iO'),
-('usuario2', 'usuario2@email.com', '$2y$10$anotherHash1234567890abcdefghijklmnopqrs'),
-('usuario3', 'usuario3@email.com', '$2y$10$yetAnotherHash1234567890abcdefghijklmn');
+('admin', 'adm@testmail.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('manager', 'usuario2@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('support', 'usuario3@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('user', 'usuario3@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW');
 
 CREATE TABLE IF NOT EXISTS roles (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -48,4 +37,25 @@ CREATE TABLE IF NOT EXISTS user_roles (
 INSERT INTO user_roles (user_id, role_id) VALUES
 (1, 1),
 (2, 2),
-(3, 4);
+(3, 3);
+(4, 4);
+
+CREATE TABLE IF NOT EXISTS tickets ( 
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject VARCHAR(255) NOT NULL,
+    status ENUM('open', 'in_progress', 'closed') DEFAULT 'open',
+    is_repeat BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ticket_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ticket_id INT NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
