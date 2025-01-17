@@ -59,3 +59,11 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
     FOREIGN KEY (ticket_id) REFERENCES tickets(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+INSERT INTO tickets (subject, status, is_repeat, user_id) VALUES
+('Login', 'in_progress', FALSE, 4),
+
+INSERT INTO ticket_messages (ticket_id, message, user_id) VALUES
+(1, 'Não consigo fazer login.', 1),
+(1, 'Olá! Meu nome é John Doe, especialista em suporte. Você poderia tentar usar a opção redefinir sua senha?', 3),
+(1, 'Já tentei, mas apareceu um erro dizendo que meu email não existe, embora meu email já existe.', 1),
