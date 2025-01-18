@@ -60,7 +60,48 @@ export default {
           timestamp: "2025-01-09 14:00:00",
         },
       ],
+      tickets: [],
+      filteredTickets: [],
+      ticketId: this.$route.query.ticketid || "Sem mensagem",
     };
+  },
+  async created() {
+    try {
+      const extra = `?ticketId=${this.ticketid}`;
+      const storedUser = localStorage.getItem("user");
+      // const user = JSON.parse(localStorage.getItem("user"));
+      if (storedUser && storedUser.token) {
+        console.log("Token detected");
+      } else {
+        console.log("Token not found");
+      };
+      // TODO: Fix get tickets
+      const response = await axios.get(
+        `http://localhost:8080/api/users/getUserTickets.php${extra}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      if (response.data.sucess) {
+        this.tickets = response.data.tickets.map(ticket => ({
+            ...ticket,
+          }));
+
+        this.filteredTickets = this.tickets.filter(ticket => ticket.id !== ticketId);
+        alert("Sucess");
+      } else {
+        alert("Erro");
+      }
+
+    } catch (err) {
+      alert("Erro ao conectar ao servidor. Tente novamente mais tarde.")
+
+    } finally{
+      console.log("Requisição foi completa.");
+    }
   },
   methods: {
     formatDate(timestamp) {

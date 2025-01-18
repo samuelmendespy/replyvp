@@ -57,8 +57,13 @@ export default {
   mounted() {},
   methods: {
     generateTicket() {
-      console.log("Ticket", this.ticketSubject);
-      console.log("Message Content", this.messageContent);
+      this.$router.push({
+        name: "MessagesPage",
+        query: {
+          subject: this.ticketSubject,
+          message: this.messageContent,
+        },
+      });
     },
   },
 };

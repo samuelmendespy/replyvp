@@ -122,7 +122,11 @@
       async deleteUser(userId) {
         if (confirm("Tem certeza que deseja remover este usuário?")) {
           try {
-            const token = localStorage.getItem("token");
+            const storedUser = localStorage.getItem("user");
+            if (storedUser && storedUser.token) {
+              
+            }
+            const token = storedUser.token;
             const response = await axios.delete(
               `http://localhost:8080/api/users/deleteUser.php?userId=${userId}`,
               {

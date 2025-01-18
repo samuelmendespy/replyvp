@@ -36,8 +36,7 @@ export default {
   name: "TicketSearchPage",
   data() {
     return {
-      ticketSubject: "",
-      messageContent: "",
+      code: "",
       error: null,
     };
   },
@@ -45,7 +44,12 @@ export default {
   methods: {
     searchTicketHistory() {
       console.log("Message history");
-      this.$router.push("/tickets/history");
+      this.$router.push({
+        name: "TicketHistoryPage",
+        query: {
+          ticketid: this.code,
+        },
+      });
     },
   },
 };

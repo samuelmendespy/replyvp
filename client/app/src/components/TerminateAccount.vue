@@ -66,7 +66,7 @@ export default {
   },
   methods: {
     testDeleteAccount() {
-
+      // TODO: Implement method to delete account
       if (this.confirmation) {
         this.testScheduleDeletion();
       } else {

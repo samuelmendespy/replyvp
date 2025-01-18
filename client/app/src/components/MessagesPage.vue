@@ -31,7 +31,8 @@ export default {
         { text: "Olá! Como posso ajudar?", sender: "support", timestamp: new Date() },
         { text: "Oi! Preciso de suporte.", sender: "user", timestamp: new Date() },
       ],
-      newMessage: "",
+      newMessage: this.$route.query.message || "Sem mensagem",
+      subject: this.$route.query.subject || "Assunto indefinido",
     };
   },
   methods: {
@@ -52,6 +53,10 @@ export default {
         sender: "support",
         timestamp: new Date(),
       });
+    },
+    openTicket(newTicketId) {
+      // Redirect to new ticket
+      console.log("Current Ticket is ID: ", newTicketId);
     },
     formatTime(date) {
       return new Intl.DateTimeFormat("pt-BR", {
