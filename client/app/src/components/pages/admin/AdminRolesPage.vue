@@ -124,7 +124,7 @@
           try {
             const storedUser = localStorage.getItem("user");
             if (storedUser && storedUser.token) {
-              
+              console.log("Teste");
             }
             const token = storedUser.token;
             const response = await axios.delete(

@@ -33,6 +33,8 @@ export default {
       ],
       newMessage: this.$route.query.message || "Sem mensagem",
       subject: this.$route.query.subject || "Assunto indefinido",
+      ticketId: 0,
+      isTicketOpen: false,
     };
   },
   methods: {
@@ -53,6 +55,13 @@ export default {
         sender: "support",
         timestamp: new Date(),
       });
+    },
+    submitNewMessage() {
+      if (this.isTicketOpen) {
+        this.sendMessage();
+      } else{
+        this.openTicket();
+      }
     },
     openTicket(newTicketId) {
       // Redirect to new ticket

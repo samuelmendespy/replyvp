@@ -1,20 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import AppHome from '../components/AppHome.vue';
-import NotFoundPage from '@/components/NotFoundPage.vue';
-import ContactUs from '@/components/ContactUs.vue';
-import MessagesPage from '@/components/MessagesPage.vue';
-import LoginPage from '@/components/LoginPage.vue';
-import RegisterPage from '@/components/RegisterPage.vue';
-import TerminateAccount from '@/components/TerminateAccount.vue';
-import PrivacyPolicyPage from '@/components/PrivacyPolicyPage.vue';
-import TermsPage from '@/components/TermsPage.vue';
-import DashboardPage from '@/components/DashboardPage.vue';
-import FinishedList from '@/components/FinishedList.vue';
-import UnansweredList from '@/components/UnansweredList.vue';
-import TicketSearchPage from '@/components/TicketSearchPage.vue';
-import TicketHistoryPage from '@/components/TicketHistoryPage.vue';
-import AdminRolesPage from '@/components/AdminRolesPage.vue';
-import NewTicketPage from '@/components/NewTicketPage.vue';
+
+import ContactUs from '@/components/pages/ContactUs.vue';
+import TermsPage from '@/components/pages/TermsPage.vue';
+import PrivacyPolicyPage from '@/components/pages/PrivacyPolicyPage.vue';
+import NotFoundPage from '@/components/pages/NotFoundPage.vue';
+
+import LoginPage from '@/components/pages/user/LoginPage.vue';
+import RegisterPage from '@/components/pages/user/RegisterPage.vue';
+import DashboardPage from '@/components/pages/user/DashboardPage.vue';
+import TerminateAccount from '@/components/pages/user/TerminateAccount.vue';
+
+import MessagesPage from '@/components/pages/tickets/MessagesPage.vue';
+import FinishedList from '@/components/pages/tickets/FinishedList.vue';
+import UnansweredList from '@/components/pages/tickets/UnansweredList.vue';
+import TicketSearchPage from '@/components/pages/tickets/TicketSearchPage.vue';
+import TicketHistoryPage from '@/components/pages/tickets/TicketHistoryPage.vue';
+import NewTicketPage from '@/components/pages/tickets/NewTicketPage.vue';
+
+import AdminRolesPage from '@/components/pages/admin/AdminRolesPage.vue';
 
 const routes = [
   { path: '/', name: 'AppHome', component: AppHome },

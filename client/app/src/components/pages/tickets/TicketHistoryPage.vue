@@ -28,6 +28,8 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
   name: "TicketHistoryPage",
   props: {
@@ -67,34 +69,36 @@ export default {
   },
   async created() {
     try {
-      const extra = `?ticketId=${this.ticketid}`;
       const storedUser = localStorage.getItem("user");
       // const user = JSON.parse(localStorage.getItem("user"));
       if (storedUser && storedUser.token) {
+        const token = storedUser.token;
         console.log("Token detected");
-      } else {
-        console.log("Token not found");
-      };
-      // TODO: Fix get tickets
-      const response = await axios.get(
-        `http://localhost:8080/api/users/getUserTickets.php${extra}`,
-        {
-          headers: {
+        // TODO: Fix get tickets
+
+        const response = await axios.get(
+          `http://localhost:8080/api/users/getUserTickets.php`,
+          {
+            headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       )
 
-      if (response.data.sucess) {
-        this.tickets = response.data.tickets.map(ticket => ({
-            ...ticket,
-          }));
-
-        this.filteredTickets = this.tickets.filter(ticket => ticket.id !== ticketId);
+      if (response.data.sucess) { this.tickets = response.data.tickets.map(ticket => ({
+        ...ticket,
+      }));
+          // Filter Tickets by User
+          // Find ticket by ID
         alert("Sucess");
       } else {
         alert("Erro");
       }
+
+      } else {
+        console.log("Token not found");
+      }
+      
 
     } catch (err) {
       alert("Erro ao conectar ao servidor. Tente novamente mais tarde.")
