@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { useToast } from "vue-toastification";
+
 import AppHome from '../components/AppHome.vue';
 
 import ContactUs from '@/components/pages/ContactUs.vue';
@@ -24,7 +26,7 @@ const routes = [
   { path: '/', name: 'AppHome', component: AppHome },
   { path: '/:catchAll(.*)', name: 'NotFoundPage', component: NotFoundPage},
   { path: '/contact', name: 'ContactUs', component: ContactUs},
-  { path: '/messages', name: 'MessagesPage', component: MessagesPage},
+  { path: '/messages', name: 'MessagesPage', component: MessagesPage, meta: { requiresAuth: true }},
   { path: '/login', name: 'LoginPage', component: LoginPage},
   { path: '/register', name: 'RegisterPage', component: RegisterPage},
   { path: '/terminate', name: 'TerminateAccount', component: TerminateAccount},
@@ -44,6 +46,8 @@ const router = createRouter({
   routes,
 });
 
+const toast = useToast();
+
 router.beforeEach((to, from, next) => {
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
   const requiresManager = to.matched.some((record) => record.meta.requiresManager);
@@ -54,7 +58,7 @@ router.beforeEach((to, from, next) => {
   if (requiresAuth) {
     if(!user || !user.token){
       next("/login");
-      console.login("Info: The user is not logged in.")
+      toast.warning('Necessário fazer login!', { timeout: 3000 });
     } else {
       next();
     }
@@ -62,7 +66,7 @@ router.beforeEach((to, from, next) => {
 
   if (requiresAdmin) { 
     if (!user || !user.roles) {
-      console.log("Info: The user does not have Admin permission.")
+      toast.warning('Conteúdo com acesso restrito para administradores!', { timeout: 3000 });
       return next({ path: '/' });
     } else if (!user.roles.includes('admin')) {
       return next({path: '/'});
@@ -73,7 +77,7 @@ router.beforeEach((to, from, next) => {
 
   if (requiresManager) {
     if (!user || !user.roles) {
-      console.log("Info: the user does not have Manager permission.")
+      toast.error('Conteúdo restrito para administradores!', { timeout: 3000 });
     } else if (!user.roles.includes('admin') || !user.roles.includes('manager')) {
       return next ({path: '/'});
     } else {
@@ -83,7 +87,7 @@ router.beforeEach((to, from, next) => {
 
   if (requiresSupport) {
     if (!user || !user.roles) {
-      console.log("Info: the user does not have Support permission.")
+      toast.error('Conteúdo restrito para funcionários!', { timeout: 3000 });
     } else if (!user.roles.includes('admin') || !user.roles.includes('manager') || !user.roles.includes('support')) {
       return next ({path: '/'});
     } else {
@@ -91,12 +95,6 @@ router.beforeEach((to, from, next) => {
     }
   }
 
-  if (requiresAuth && (!user || !user.token)) {
-    next("/login");
-    console.login("Info: The user is not logged in.")
-  } else {
-    next();
-  }
 });
 
 export default router;
