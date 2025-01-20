@@ -14,39 +14,106 @@
     <div class="chat-input">
       <input
         v-model="newMessage"
-        @keyup.enter="sendMessage"
+        @keyup.enter="submitNewMessage"
         placeholder="Digite sua mensagem..."
       />
-      <button @click="sendMessage">Enviar</button>
+      <button @click="submitNewMessage">Enviar</button>
     </div>
   </div>
 </template>
 
 <script>
+import axios from "axios";
+import { useToast } from "vue-toastification";
+
 export default {
   name: "MessagesPage",
   data() {
     return {
       messages: [
-        { text: "Olá! Como posso ajudar?", sender: "support", timestamp: new Date() },
-        { text: "Oi! Preciso de suporte.", sender: "user", timestamp: new Date() },
+        {
+          message_id: 0,
+          text: "Olá! Como posso ajudar?",
+          sender: "support",
+          timestamp: new Date(),
+        },
+        {
+          message_id: 1,
+          text: "Oi! Preciso de suporte.",
+          sender: "user",
+          timestamp: new Date(),
+        },
       ],
+      user: JSON.parse(localStorage.getItem("user")) || {
+        id: 0,
+        roles: "guest",
+        username: "Guest",
+      },
       newMessage: this.$route.query.message || "Sem mensagem",
       subject: this.$route.query.subject || "Assunto indefinido",
-      ticketId: 0,
+      ticketId: this.$route.query.ref || 0,
       isTicketOpen: false,
     };
   },
+  setup() {
+    const toast = useToast();
+    return { toast };
+  },
   methods: {
+    loadFreshMessage(freshMessage) {
+      console.log(freshMessage);
+      console.log(this.messages[0]);
+
+      try {
+        this.messages.push(freshMessage);
+      } catch (err) {
+        console.log(err);
+        this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
+          timeout: 3000,
+        });
+      }
+    },
     sendMessage() {
       if (this.newMessage.trim() !== "") {
         this.messages.push({
+          message_id: 0,
           text: this.newMessage,
           sender: "user",
           timestamp: new Date(),
         });
         this.newMessage = "";
         setTimeout(this.fakeReply, 1000);
+      }
+    },
+    async addNewUserMessage() {
+      try {
+        const response = await axios.post(
+          "http://localhost:8080/api/tickets/new_message.php",
+          {
+            ticket_id: this.ticketId,
+            user_id: this.user.id,
+            message: this.newMessage,
+          }
+        );
+
+        if (response.status === 201) {
+          const lastUserMessage = response.data.added;
+          const compact = {
+            message_id: lastUserMessage.message_id,
+            text: lastUserMessage.text,
+            sender: "user",
+            timestamp: lastUserMessage.compact,
+          };
+
+          this.loadFreshMessage(compact);
+        }
+
+        this.newMessage = "";
+        setTimeout(this.fakeReply, 1000);
+      } catch (err) {
+        this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
+          timeout: 3000,
+        });
       }
     },
     fakeReply() {
@@ -58,14 +125,42 @@ export default {
     },
     submitNewMessage() {
       if (this.isTicketOpen) {
-        this.sendMessage();
-      } else{
-        this.openTicket();
+        // this.sendMessage();
+        this.addNewUserMessage();
+      } else {
+        this.registerNewTicket();
       }
     },
-    openTicket(newTicketId) {
-      // Redirect to new ticket
+    async registerNewTicket() {
+      const response = await axios.post("http://localhost:8080/api/tickets/create.php", {
+        user_id: this.user.id,
+        subject: this.subject,
+        message: this.newMessage,
+      });
+
+      if (response.status === 201) {
+        const createdTicketId = response.data.ticket_id;
+        this.isTicketOpen = true;
+
+        this.toast.success(`O código do seu ticket é REF ${createdTicketId}`, {
+          timeout: 3000,
+        });
+
+        this.redirectToCreatedTicket(createdTicketId);
+      } else {
+        const errorData = await response.json();
+        this.error = errorData.error || "Erro ao tentar enviar mensagem.";
+      }
+    },
+    redirectToCreatedTicket(newTicketId) {
       console.log("Current Ticket is ID: ", newTicketId);
+
+      this.$router.push({
+        name: "MessagesPage",
+        query: {
+          ref: newTicketId,
+        },
+      });
     },
     formatTime(date) {
       return new Intl.DateTimeFormat("pt-BR", {
@@ -73,6 +168,17 @@ export default {
         minute: "2-digit",
       }).format(date);
     },
+    checkTicket() {
+      if (this.ticketId != 0) {
+        this.toast.info(`Carregando Ticket REF ${this.ticketId}`, { timeout: 3000 });
+        this.isTicketOpen = true;
+      } else {
+        this.toast.info(`Envie sua mensagem para abrir o ticket`, { timeout: 4000 });
+      }
+    },
+  },
+  mounted() {
+    this.checkTicket();
   },
 };
 </script>

@@ -105,15 +105,14 @@ try {
         
         $payload = [
             "iat" => time(),
-            "exp" => time() + 3600,
+            "exp" => time() + (60 * 60),
             "data" => [
                 "id" => $user['id'],
-                "username" => $user['username'],
-                "email" => $user['email'],
                 "roles" => $roles
             ]
         ];
 
+        $userid = $user['id'];
         $jwt = JWT::encode($payload, $secretKey, 'HS256');
 
         http_response_code(200);
@@ -122,8 +121,8 @@ try {
             "message" => "Login successful.",
             "token" => $jwt,
             "user" => [
-                "username" => $input['username'],
-                "email" => $user['email'],
+                "id" => $user['id'],
+                "username" => $user['username'],
                 "roles" => $roles
             ]
         ]);

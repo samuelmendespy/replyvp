@@ -1,5 +1,5 @@
 <?php
-include 'api.php';
+require 'api.php';
 
 // Allow requests from any origin
 header("Access-Control-Allow-Origin: *");
@@ -23,7 +23,6 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $input = json_decode(file_get_contents('php://input'), true);
 
-        // Verifica se os parâmetros necessários foram enviados
         if (!isset($input['subject']) || empty($input['subject']) || strlen($input['subject']) > 255) {
             http_response_code(400);
             echo json_encode(["error" => "Subject is invalid or too long/empty."], JSON_UNESCAPED_UNICODE);

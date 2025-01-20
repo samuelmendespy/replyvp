@@ -10,7 +10,7 @@
           style="width: 120px; height: 120px; border: 4px solid #dee2e6"
         />
         <h5 class="card-title text-secondary fw-bold">{{ user.username }}</h5>
-        <p class="card-text text-muted">{{ user.email }}</p>
+        <p class="card-text text-muted">{{ user.roles.join(' | ') }}</p>
       </div>
     </div>
 
@@ -42,8 +42,9 @@ export default {
   data() {
     return {
       user: JSON.parse(localStorage.getItem("user")) || {
+        id: 0,
         username: "Guest",
-        email: "guest@mail.com",
+        roles: ["Guest"],
       },
       messages: [
         {

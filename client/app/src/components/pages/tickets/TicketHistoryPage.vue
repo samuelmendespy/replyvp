@@ -15,99 +15,95 @@
           <td>{{ message.username }}</td>
           <td>{{ message.subject }}</td>
           <td>
-            {{ message.text.slice(0, 20) + (message.text.length > 20 ? "..." : "") }}
+            {{ message.status }}
           </td>
           <td>{{ formatDate(message.timestamp) }}</td>
         </tr>
       </tbody>
     </table>
     <div class="text-center mt-3">
-      <button @click="$emit('back-to-contact')" class="btn btn-secondary">Voltar</button>
+      <button class="btn btn-secondary" @click="redirectToNewTicket">Novo Ticket</button>
     </div>
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import { useToast } from "vue-toastification";
 
 export default {
   name: "TicketHistoryPage",
-  props: {
-    messages: {
-      type: Array,
-      required: true,
-    },
-  },
   data() {
     return {
+      user: JSON.parse(localStorage.getItem("user")) || {
+        id: 0,
+        username: "Guest",
+        roles: ["Guest"],
+        token: "A",
+      },
       sample: [
         {
           username: "samuelmendespy",
           subject: "1",
-          text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+          status: "Closed",
           timestamp: "2025-01-09 10:00:00",
-        },
-        {
-          username: "samuelmendespy",
-          subject: "2",
-          text:
-            "Vivamus id vulputate ligula. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.",
-          timestamp: "2025-01-09 12:00:00",
-        },
-        {
-          username: "samuelmendespy",
-          subject: "3",
-          text:
-            "Vestibulum eleifend aliquam lacus ut iaculis. Ut pharetra sapien nunc, ullamcorper vestibulum nisi vulputate in.",
-          timestamp: "2025-01-09 14:00:00",
         },
       ],
       tickets: [],
       filteredTickets: [],
-      ticketId: this.$route.query.ticketid || "Sem mensagem",
     };
   },
   async created() {
+    const toast = useToast();
     try {
-      const storedUser = localStorage.getItem("user");
-      // const user = JSON.parse(localStorage.getItem("user"));
-      if (storedUser && storedUser.token) {
-        const token = storedUser.token;
-        console.log("Token detected");
-        // TODO: Fix get tickets
-
-        const response = await axios.get(
-          `http://localhost:8080/api/users/getUserTickets.php`,
-          {
-            headers: {
-            Authorization: `Bearer ${token}`,
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user || !user.token) {
+        toast.error("Falha na autenticação!", { timeout: 3000 });
+        // Redirect user
+      } else {
+        const response = await axios.get(`http://localhost:8080/api/tickets/list.php`, {
+          params: {
+            username: "usera1",
           },
+        });
+
+        if (response.status === 200) {
+          this.filteredTickets = response.data.tickets;
+          console.log(this.filteredTickets);
+          this.loadData(this.filteredTickets);
+        } else {
+          toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
         }
-      )
-
-      if (response.data.sucess) { this.tickets = response.data.tickets.map(ticket => ({
-        ...ticket,
-      }));
-          // Filter Tickets by User
-          // Find ticket by ID
-        alert("Sucess");
-      } else {
-        alert("Erro");
       }
-
-      } else {
-        console.log("Token not found");
-      }
-      
-
     } catch (err) {
-      alert("Erro ao conectar ao servidor. Tente novamente mais tarde.")
-
-    } finally{
-      console.log("Requisição foi completa.");
+      console.log(err);
+      toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
     }
   },
   methods: {
+    redirectToNewTicket() {
+      this.$router.push("/tickets/new");
+    },
+    loadData(data = []) {
+      data.forEach((item) => {
+        const statusMap = {
+          open: "Aberta",
+          closed: "Fechada",
+          in_progress: "Em andamento",
+        };
+
+        const newItem = {
+          username: `User id: ${item.id}`,
+          subject: item.subject,
+          status: statusMap[item.status] || "Desconhecido",
+          timestamp: item.created_at,
+        };
+
+        this.sample.push(newItem);
+      });
+      console.log("Data loaded");
+      console.log(this.sample);
+    },
     formatDate(timestamp) {
       const date = new Date(timestamp);
       return date.toLocaleString("pt-BR", {

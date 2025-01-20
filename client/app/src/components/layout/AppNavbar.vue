@@ -21,6 +21,9 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/messages">Ver Mensagens</router-link>
           </li>
+          <li class="nav-item">
+            <router-link class="nav-link" to="/tickets/history">Meus Tickets</router-link>
+          </li>
         </ul>
         <div v-if="isUserLogged" class="d-flex align-items-center" @click="logoutUser">
           Logout

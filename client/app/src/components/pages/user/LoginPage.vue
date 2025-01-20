@@ -83,8 +83,8 @@ export default {
           localStorage.setItem(
             "user",
             JSON.stringify({
+              id: user.id,
               username: user.username,
-              email: user.email,
               roles: user.roles,
               token: token,
             })
