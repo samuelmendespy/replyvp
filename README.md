@@ -21,17 +21,17 @@ This project is a modern fullstack application with a PHP backend, MySQL databas
 
 ### Backend
 
-- **Language**: PHP 8.4
-- **Web Server**: Apache 2.4 (servindo a aplicação PHP)
+- **Language**: PHP 8.4.3
+- **Web Server**: Apache 2.4.62 (serving the PHP application)
 - **API Endpoints**:
-  - **Authentication**: `localhost:8080/auth` (Para login e registro de usuários)
-  - **API**: `localhost:8080/api` (Para interações com a aplicação, protegidas por JWT)
-- **Database Driver**: MySQLi (para comunicação com o banco de dados MySQL)
-- **Authentication**: Utilização do Firebase `php-jwt` v6.10.2 para autenticação e geração de tokens JWT.
-- **Containers**: Docker Compose para facilitar o processo de desenvolvimento, build e deployment em ambientes isolados, com a API e autenticação rodando no container `php-apache`.
+  - **Authentication**: `localhost:8080/auth` (For user login and registration)
+  - **API**: `localhost:8080/api` (For interactions with the application, protected by JWT)
+- **Database Driver**: MySQLi (for communication with the MySQL database)
+- **Authentication**: Using Firebase `php-jwt` v6.10.2 for authentication and JWT token generation.
+- **Containers**: Docker Compose to simplify the development, build, and deployment process in isolated environments, with the API and authentication running in the `php-apache` container.
 
 ### Database
-- **Database**: MySQL 9.1
+- **Database**: MySQL 9.1.0
 
 ### Frontend
 - **Framework**: Vue.js (Client-side)
