@@ -18,4 +18,3 @@ function getConnection() {
 
     return $connection;
 }
-?>

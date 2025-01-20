@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS api;
+CREATE DATABASE IF NOT EXISTS api CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE api;
 
 CREATE TABLE IF NOT EXISTS users (
@@ -9,22 +9,10 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO users (username, email, password) VALUES
-('admin', 'adm@testmail.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
-('manager', 'usuario2@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
-('support', 'usuario3@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
-('user', 'usuario3@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW');
-
 CREATE TABLE IF NOT EXISTS roles (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL UNIQUE
 );
-
-INSERT INTO roles (name) VALUES
-('admin'),
-('manager'),
-('support'),
-('user');
 
 CREATE TABLE IF NOT EXISTS user_roles (
     user_id INT NOT NULL,
@@ -33,12 +21,6 @@ CREATE TABLE IF NOT EXISTS user_roles (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (role_id) REFERENCES roles(id)
 );
-
-INSERT INTO user_roles (user_id, role_id) VALUES
-(1, 1),
-(2, 2),
-(3, 3);
-(4, 4);
 
 CREATE TABLE IF NOT EXISTS tickets ( 
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -60,10 +42,38 @@ CREATE TABLE IF NOT EXISTS ticket_messages (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+INSERT INTO users (username, email, password) VALUES
+('admin', 'adm@testmail.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('manager', 'manager@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('support', 'support@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('usera1', 'usuario4@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('usera2', 'usuario5@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('usera3', 'usuario6@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW'),
+('usera4', 'usuario7@email.com', '$2y$12$snzhBJhEDXXgLoYHMPFnBe284fRUCoedHPt.7zOt9zl7K3P6IFtOW');
+
+INSERT INTO roles (name) VALUES
+('admin'),
+('manager'),
+('support'),
+('user');
+
+INSERT INTO user_roles (user_id, role_id) VALUES
+(1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 4),
+(6, 4),
+(7, 4);
+
 INSERT INTO tickets (subject, status, is_repeat, user_id) VALUES
 ('Login', 'in_progress', FALSE, 4),
+('Atualização de email', 'open', FALSE, 5),
+('Verificação de email', 'open', FALSE, 6);
 
 INSERT INTO ticket_messages (ticket_id, message, user_id) VALUES
-(1, 'Não consigo fazer login.', 1),
+(1, 'Não consigo fazer login.', 4),
 (1, 'Olá! Meu nome é John Doe, especialista em suporte. Você poderia tentar usar a opção redefinir sua senha?', 3),
-(1, 'Já tentei, mas apareceu um erro dizendo que meu email não existe, embora meu email já existe.', 1),
+(1, 'Já tentei, mas apareceu um erro dizendo que meu email não existe, embora meu email já existe.', 4),
+(2, 'Quero atualizar meu email.', 5),
+(3, 'Não consigo verificar o meu email.', 6);

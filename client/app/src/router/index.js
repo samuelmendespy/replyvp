@@ -62,37 +62,33 @@ router.beforeEach((to, from, next) => {
     } else {
       next();
     }
-  }
-
-  if (requiresAdmin) { 
+  } else if (requiresAdmin) { 
     if (!user || !user.roles) {
       toast.warning('Conteúdo com acesso restrito para administradores!', { timeout: 3000 });
       return next({ path: '/' });
     } else if (!user.roles.includes('admin')) {
       return next({path: '/'});
     } else {
-      return next;
+      return next();
     }
-  }
-
-  if (requiresManager) {
+  } else if (requiresManager) {
     if (!user || !user.roles) {
       toast.error('Conteúdo restrito para administradores!', { timeout: 3000 });
     } else if (!user.roles.includes('admin') || !user.roles.includes('manager')) {
       return next ({path: '/'});
     } else {
-      return next;
+      return next();
     }
-  }
-
-  if (requiresSupport) {
+  } else if (requiresSupport) {
     if (!user || !user.roles) {
       toast.error('Conteúdo restrito para funcionários!', { timeout: 3000 });
     } else if (!user.roles.includes('admin') || !user.roles.includes('manager') || !user.roles.includes('support')) {
       return next ({path: '/'});
     } else {
-      return next;
+      return next();
     }
+  } else {
+    return next();
   }
 
 });
