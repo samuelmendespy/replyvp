@@ -37,7 +37,7 @@ const routes = [
   { path: '/tickets/history', name: 'TicketHistoryPage', component: TicketHistoryPage, meta: {requiresAuth: true }},
   { path: '/tickets/new', name: 'NewTicketPage', component: NewTicketPage },
   { path: '/finished', name: 'FinishedList', component: FinishedList, meta: {requiresAdmin: true }},
-  { path: '/pending', name: 'UnansweredList', component: UnansweredList, meta: {requiresSupport: true }},
+  { path: '/support/pending', name: 'UnansweredList', component: UnansweredList, meta: {requiresSupport: true }},
   { path: '/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true }}
 ];
 
@@ -57,40 +57,33 @@ router.beforeEach((to, from, next) => {
 
   if (requiresAuth) {
     if(!user || !user.token){
-      next("/login");
       toast.warning('Necessário fazer login!', { timeout: 3000 });
-    } else {
-      next();
+      next("/login");
     }
-  } else if (requiresAdmin) { 
-    if (!user || !user.roles) {
-      toast.warning('Conteúdo com acesso restrito para administradores!', { timeout: 3000 });
-      return next({ path: '/' });
-    } else if (!user.roles.includes('admin')) {
-      return next({path: '/'});
-    } else {
-      return next();
-    }
-  } else if (requiresManager) {
-    if (!user || !user.roles) {
-      toast.error('Conteúdo restrito para administradores!', { timeout: 3000 });
-    } else if (!user.roles.includes('admin') || !user.roles.includes('manager')) {
-      return next ({path: '/'});
-    } else {
-      return next();
-    }
-  } else if (requiresSupport) {
-    if (!user || !user.roles) {
-      toast.error('Conteúdo restrito para funcionários!', { timeout: 3000 });
-    } else if (!user.roles.includes('admin') || !user.roles.includes('manager') || !user.roles.includes('support')) {
-      return next ({path: '/'});
-    } else {
-      return next();
-    }
-  } else {
-    return next();
   }
 
+  if (requiresAdmin) { 
+    if (!user || !user.roles.includes('admin')) {
+      toast.warning('Conteúdo com acesso restrito para administradores!', { timeout: 3000 });
+      return next({ path: '/' });
+    } 
+  }
+  
+  if (requiresManager) {
+    if (!user || (!user.roles.includes('admin') && !user.roles.includes('manager'))) {
+      toast.error('Conteúdo restrito para administradores!', { timeout: 3000 });
+      return next({path: '/'});
+    }
+  }
+  
+  if (requiresSupport) {
+    if (!user || (!user.roles.includes('admin') && !user.roles.includes('manager') && !user.roles.includes('support'))) {
+      toast.error('Conteúdo restrito para funcionários!', { timeout: 3000 });
+      return next({path: '/'});
+    }
+  }
+  
+  return next();
 });
 
 export default router;
