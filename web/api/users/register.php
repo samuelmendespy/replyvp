@@ -1,5 +1,5 @@
 <?php
-include 'api.php';
+require 'api.php';
 
 // Allow requests from any origin
 header("Access-Control-Allow-Origin: *");
