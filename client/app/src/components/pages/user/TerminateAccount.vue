@@ -4,10 +4,14 @@
       <div class="col-md-6">
         <div class="card shadow">
           <div class="card-body p-4">
-            <h2 class="card-title text-center mb-4">Apagar sua conta em IA.ContactCenter</h2>
+            <h2 class="card-title text-center mb-4">
+              Apagar sua conta em IA.ContactCenter
+            </h2>
             <form @submit.prevent="testDeleteAccount">
               <div class="mb-3">
-                <label for="email" class="form-label">Confirmeu seu endereço de email</label>
+                <label for="email" class="form-label"
+                  >Confirme o seu endereço de email</label
+                >
                 <input
                   type="email"
                   id="email"
@@ -20,7 +24,8 @@
               <div class="mb-3">
                 <label for="password" class="form-label">Confirme sua senha</label>
                 <input
-                  type="password"  id="password"
+                  type="password"
+                  id="password"
                   class="form-control"
                   v-model="password"
                   placeholder="Senha"
@@ -36,7 +41,7 @@
                   required
                 />
                 <label class="form-check-label" for="confirmation">
-                <a>Confirmo que desejo marcar minha conta para exclusão.</a>
+                  <a>Confirmo que desejo marcar minha conta para exclusão.</a>
                 </label>
               </div>
               <div v-if="error" class="alert alert-danger mt-2" role="alert">
@@ -54,15 +59,28 @@
 </template>
 
 <script>
+import axios from "axios";
+import { useToast } from "vue-toastification";
+
 export default {
-  name: 'TerminateAccount',
+  name: "TerminateAccount",
   data() {
     return {
+      user: JSON.parse(localStorage.getItem("user")) || {
+        id: 0,
+        username: "Guest",
+        roles: ["Guest"],
+        token: "A",
+      },
       password: "",
       email: "",
       confirmation: false,
-      error: null
+      error: null,
     };
+  },
+  setup() {
+    const toast = useToast();
+    return { toast };
   },
   methods: {
     testDeleteAccount() {
@@ -72,12 +90,22 @@ export default {
       } else {
         alert(`Operação cancelada! \n Retornando para página inicial!`);
       }
-      
     },
     testScheduleDeletion() {
-      alert(`A conta de email ${this.email} será apagada em 30 dias!`);
-      this.$router.push('/'); 
-    }
+      axios
+        .delete("http://localhost:8080/api/users/delete.php", {
+          id: this.user.id,
+        })
+        .then((response) => {
+          this.toast.success("Sucesso ao encerrar a conta!", { timeout: 3000 });
+          console.log("O cadastro do usuário foi apagado com sucesso", response.data);
+        })
+        .catch((error) => {
+          this.toast.error("Falha ao encerrar a conta!", { timeout: 3000 });
+          console.error("Falha ao delete o recurso", error);
+        });
+      this.$router.push("/");
+    },
   },
 };
 </script>

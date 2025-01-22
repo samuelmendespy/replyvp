@@ -12,6 +12,7 @@ import LoginPage from '@/components/pages/user/LoginPage.vue';
 import RegisterPage from '@/components/pages/user/RegisterPage.vue';
 import DashboardPage from '@/components/pages/user/DashboardPage.vue';
 import TerminateAccount from '@/components/pages/user/TerminateAccount.vue';
+import UpdateUserPage from '@/components/pages/user/UpdateUserPage.vue';
 
 import MessagesPage from '@/components/pages/tickets/MessagesPage.vue';
 import FinishedList from '@/components/pages/tickets/FinishedList.vue';
@@ -33,6 +34,7 @@ const routes = [
   { path: '/policy', name: 'PrivacyPolicyPage', component: PrivacyPolicyPage},
   { path: '/terms', name: 'TermsPage', component: TermsPage},
   { path: '/dashboard', name: 'DashboardPage', component: DashboardPage, meta: { requiresAuth: true }},
+  { path: '/user/update', name: 'UpdateUserRegistrationPage', component: UpdateUserPage, meta: { requiresAuth: true }},
   { path: '/tickets/search', name: 'TicketSearchPage', component: TicketSearchPage, meta: {requiresAuth: true }},
   { path: '/tickets/history', name: 'TicketHistoryPage', component: TicketHistoryPage, meta: {requiresAuth: true }},
   { path: '/tickets/new', name: 'NewTicketPage', component: NewTicketPage },

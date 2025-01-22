@@ -28,6 +28,9 @@
 </template>
 
 <script>
+import axios from "axios";
+import { useToast } from "vue-toastification";
+
 export default {
   name: "UnansweredList",
   data() {
@@ -57,6 +60,7 @@ export default {
     };
   },
   async created() {
+    const toast = useToast();
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user || !user.token) {

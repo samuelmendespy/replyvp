@@ -56,6 +56,7 @@ export default {
   async created() {
     const toast = useToast();
     try {
+      // TODO: Use Auth Bearer with token to send user id
       const user = JSON.parse(localStorage.getItem("user"));
       if (!user || !user.token) {
         toast.error("Falha na autenticação!", { timeout: 3000 });
@@ -63,7 +64,7 @@ export default {
       } else {
         const response = await axios.get(`http://localhost:8080/api/tickets/list.php`, {
           params: {
-            username: "usera1",
+            id: user.id,
           },
         });
 
