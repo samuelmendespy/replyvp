@@ -28,7 +28,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import apiService from "@/services/apiService";
 import { useToast } from "vue-toastification";
 
 export default {
@@ -61,21 +61,9 @@ export default {
       if (!user || !user.token) {
         toast.error("Falha na autenticação!", { timeout: 3000 });
         // Redirect user
-      } else {
-        const response = await axios.get(`http://localhost:8080/api/tickets/list.php`, {
-          params: {
-            id: user.id,
-          },
-        });
-
-        if (response.status === 200) {
-          this.filteredTickets = response.data.tickets;
-          console.log(this.filteredTickets);
-          this.loadData(this.filteredTickets);
-        } else {
-          toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
-        }
       }
+      this.filteredTickets = await apiService.getTickets(user.id);
+      this.loadData(this.filteredTickets);
     } catch (err) {
       console.log(err);
       toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });

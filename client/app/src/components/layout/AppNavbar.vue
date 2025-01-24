@@ -19,7 +19,7 @@
             <router-link class="nav-link" to="/">Home</router-link>
           </li>
           <li class="nav-item">
-            <router-link class="nav-link" to="/messages">Ver Mensagens</router-link>
+            <router-link class="nav-link" to="/messages">Abrir Conversa</router-link>
           </li>
           <li class="nav-item">
             <router-link class="nav-link" to="/tickets/history">Meus Tickets</router-link>
