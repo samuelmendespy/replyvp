@@ -2,13 +2,13 @@ import axios from "axios";
 
 const AUTH_URL = "http://localhost:8080/auth/users/auth.php";
 
-export function getToken() {
+export function getUserToken() {
   const user = JSON.parse(localStorage.getItem("user"));
   return user?.token || null;
 }
 
 export async function validateToken() {
-  const token = getToken();
+  const token = getUserToken();
 
   if (!token) {
     return false;
@@ -27,4 +27,37 @@ export async function validateToken() {
     localStorage.removeItem("user");
     return false;
   }
+}
+
+export async function loginUser(username, password) {
+  try {
+    const response = await axios.post(AUTH_URL, { username, password });
+
+    if (response.status === 200) {
+      const user = response.data.user;
+      const token = response.data.token;
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: user.id,
+          username: user.username,
+          roles: user.roles,
+          token: token,
+        })
+      );
+
+      return {
+        status: response.status,
+      };
+    } else {
+      return { success: false, error: "Erro ao tentar fazer login." };
+    }
+  } catch (err) {
+    return { success: false, error: "Erro na comunicação com o servidor." };
+  }
+}
+
+export function logoutUser() {
+  localStorage.removeItem("user");
 }

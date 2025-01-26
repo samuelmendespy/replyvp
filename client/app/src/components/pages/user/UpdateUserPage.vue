@@ -32,10 +32,21 @@
                 <label for="old_password" class="form-label">Senha Atual</label>
                 <input
                   type="password"
-                  id="old_password"
+                  id="password"
                   class="form-control"
-                  v-model="oldPassword"
+                  v-model="password"
                   placeholder="Digite sua senha atual"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="email" class="form-label">Endereço de email</label>
+                <input
+                  type="email"
+                  id="new_email"
+                  class="form-control"
+                  v-model="newEmail"
+                  placeholder="Digite seu endereço de email"
                   required
                 />
               </div>
@@ -64,7 +75,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import userService from "@/services/userService";
 import { useToast } from "vue-toastification";
 
 export default {
@@ -73,12 +84,16 @@ export default {
     return {
       username: "",
       email: "",
-      oldPassword: "",
+      password: "",
+      newEmail: "",
       newPassword: "",
       permission: false,
       error: null,
-      userId: 1,
-      oldEmail: "",
+      user: JSON.parse(localStorage.getItem("user")) || {
+        id: 0,
+        username: "Guest",
+        roles: ["Guest"],
+      },
     };
   },
   setup() {
@@ -89,37 +104,31 @@ export default {
     async updateUser() {
       this.error = null;
 
-      if (!this.username || !this.email || !this.oldPassword || !this.permission) {
+      if (
+        !this.username ||
+        !this.email ||
+        !this.oldPassword ||
+        !this.newEmail ||
+        !this.newPassword ||
+        !this.permission
+      ) {
         this.error = "Todos os campos obrigatórios devem ser preenchidos.";
         return;
       }
 
-      const updatedData = {
-        id: this.userId,
-        old_password: this.oldPassword,
-        old_email: this.oldEmail,
-        new_email: this.email,
-        new_password: this.newPassword || undefined,
-      };
+      const response = userService.updateUser(
+        this.user.id,
+        this.oldPassword,
+        this.oldEmail,
+        this.newEmail,
+        this.newPassword
+      );
 
-      try {
-        const response = await axios.put(
-          "http://localhost:8080/api/users/update.php",
-          updatedData
-        );
-
-        if (response.status === 200) {
-          this.toast.success("Seus dados foram atualizados com sucesso!", {
-            timeout: 3000,
-          });
-          this.$router.push("/dashboard");
-        }
-      } catch (error) {
-        if (error.response) {
-          this.error = error.response.data.error || "Erro ao atualizar os dados";
-        } else {
-          this.error = "Erro de rede ou servidor";
-        }
+      if (response === 200) {
+        this.toast.success("Seus dados foram atualizados com sucesso!", {
+          timeout: 3000,
+        });
+        this.$router.push("/dashboard");
       }
     },
   },

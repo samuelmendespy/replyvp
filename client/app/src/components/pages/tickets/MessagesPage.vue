@@ -2,7 +2,7 @@
   <div class="chat-container">
     <div class="chat-box">
       <div
-        v-for="(msg, index) in messages"
+        v-for="(msg, index) in messageList"
         :key="index"
         class="message"
         :class="msg.sender === 'user' ? 'user-message' : 'support-message'"
@@ -23,15 +23,14 @@
 </template>
 
 <script>
-import axios from "axios";
-import apiService from "@/services/apiService";
+import ticketService from "@/services/ticketService";
 import { useToast } from "vue-toastification";
 
 export default {
   name: "MessagesPage",
   data() {
     return {
-      messages: [
+      messageList: [
         {
           message_id: 0,
           text: "Oi! Preciso de suporte.",
@@ -61,43 +60,51 @@ export default {
     return { toast };
   },
   methods: {
-    loadTicketMessages() {
-      console.log("Loading messages");
-      loadMessagesDataFromTickets();
-    },
-    async loadTicketsMessagesData() {
+    async getMessages() {
       try {
         // TODO: Use Auth Bearer with token to send user id
         const user = JSON.parse(localStorage.getItem("user"));
         if (!user || !user.token) {
-          toast.error("Falha na autenticação!", { timeout: 3000 });
+          this.toast.error("Falha na autenticação!", { timeout: 3000 });
           // Redirect user
         } else {
-          const response = await axios.get(`http://localhost:8080/api/tickets/list.php`, {
-            params: {
-              id: user.id,
-            },
-          });
+          const response = await ticketService.getTicketMessages(this.ticketId, user.id);
 
           if (response.status === 200) {
-            this.filteredTickets = response.data.tickets;
-            console.log(this.filteredTickets);
-            this.loadData(this.filteredTickets);
+            this.filteredMessages = response.data.messages;
+            console.log(this.filteredMessages);
+            this.loadMessagesData(this.filteredMessages);
           } else {
-            toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
+            this.toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
           }
         }
-      } catch (err) {
-        console.log(err);
-        toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
+      } catch (error) {
+        console.log(error);
+        this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
+          timeout: 3000,
+        });
       }
+    },
+    loadMessagesData(data = []) {
+      data.forEach((item) => {
+        const newItem = {
+          message_id: item.id,
+          subject: item.subject,
+          sender: item.messages.sender,
+          timestamp: item.created_at,
+        };
+        this.messageList.push(newItem);
+      });
+
+      console.log("Data loaded");
+      console.log(this.messageList.length());
     },
     loadFreshMessage(freshMessage) {
       console.log(freshMessage);
-      console.log(this.messages[0]);
+      console.log(this.messageList[0]);
 
       try {
-        this.messages.push(freshMessage);
+        this.messageList.push(freshMessage);
       } catch (err) {
         console.log(err);
         this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
@@ -107,7 +114,7 @@ export default {
     },
     sendMessage() {
       if (this.newMessage.trim() !== "") {
-        this.messages.push({
+        this.messageList.push({
           message_id: 0,
           text: this.newMessage,
           sender: "user",
@@ -119,13 +126,10 @@ export default {
     },
     async addNewUserMessage() {
       try {
-        const response = await axios.post(
-          "http://localhost:8080/api/tickets/new_message.php",
-          {
-            ticket_id: this.ticketId,
-            user_id: this.user.id,
-            message: this.newMessage,
-          }
+        const response = await ticketService.addNewMessage(
+          this.ticketId,
+          this.user.id,
+          this.newMessage
         );
 
         if (response.status === 201) {
@@ -142,26 +146,44 @@ export default {
 
         this.newMessage = "";
         setTimeout(this.fakeReply, 1000);
-      } catch (err) {
+      } catch (error) {
+        console.log(error);
         this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
           timeout: 3000,
         });
       }
     },
     fakeReply() {
-      this.messages.push({
+      this.messageList.push({
         text: "Estamos verificando sua solicitação.",
         sender: "support",
         timestamp: new Date(),
       });
     },
+    async createNewTicket() {
+      try {
+        const createdTicketId = await ticketService.createTicket(
+          this.user.id,
+          this.subject,
+          this.newMessage
+        );
+        this.redirectToCreatedTicket(createdTicketId);
+      } catch (error) {
+        console.log(error);
+        this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
+          timeout: 3000,
+        });
+      }
+    },
     submitNewMessage() {
+      console.log(this.isTicketOpen);
       if (this.isTicketOpen) {
         // this.sendMessage();
         this.addNewUserMessage();
       } else {
         // REGISTER NEW TICKET
-        apiService.createTicket(this.user.id, this.subject, this.newMessage);
+
+        this.createNewTicket();
       }
     },
     redirectToCreatedTicket(newTicketId) {
@@ -184,7 +206,7 @@ export default {
       if (this.ticketId != 0) {
         this.toast.info(`Carregando Ticket REF ${this.ticketId}`, { timeout: 3000 });
         this.isTicketOpen = true;
-        this.loadTicketMessages();
+        this.getMessages();
       } else {
         this.toast.info(`Envie sua mensagem para abrir o ticket`, { timeout: 4000 });
       }

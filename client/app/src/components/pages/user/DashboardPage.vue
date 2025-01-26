@@ -10,25 +10,44 @@
           style="width: 120px; height: 120px; border: 4px solid #dee2e6"
         />
         <h5 class="card-title text-secondary fw-bold">{{ user.username }}</h5>
-        <p class="card-text text-muted">{{ user.roles.join(' | ') }}</p>
+        <p class="card-text text-muted">{{ user.roles.join(" | ") }}</p>
+        <div class="text-center mt-3">
+          <button class="btn btn-secondary" @click="redirectToUpdateUserPage">
+            Atualizar Cadastro
+          </button>
+        </div>
       </div>
     </div>
 
     <div class="card shadow border-0" style="background-color: #f8f9fa">
       <div class="card-body">
-        <h5 class="card-title text-secondary fw-bold">Mensagens</h5>
+        <h5 class="card-title text-secondary fw-bold">Atendimentos do Usuário</h5>
         <ul class="list-group list-group-flush">
           <li
-            v-for="message in messages"
-            :key="message.id"
+            v-for="ticket in userTicketsList"
+            :key="ticket.id"
             class="list-group-item d-flex justify-content-between align-items-center"
             style="background-color: #f8f9fa; border: none"
           >
             <div>
-              <small class="text-muted">{{ formatDateTime(message.dateTime) }}</small>
+              <small class="text-muted">{{ formatDateTime(ticket.timestamp) }}</small>
             </div>
-            <div class="text-truncate text-secondary" style="max-width: 70%">
-              {{ truncateMessage(message.content) }}
+            <div
+              class="text-truncate text-secondary text-decoration-underline"
+              style="max-width: 70%"
+            >
+              <router-link
+                :to="{
+                  name: 'MessagesPage',
+                  query: {
+                    ref: ticket.id,
+                  },
+                }"
+                class="text-truncate text-secondary"
+                style="max-width: 70%; cursor: pointer; text-decoration: none"
+              >
+                {{ truncateText(ticket.subject) }}
+              </router-link>
             </div>
           </li>
         </ul>
@@ -38,6 +57,9 @@
 </template>
 
 <script>
+import ticketService from "@/services/ticketService";
+import { useToast } from "vue-toastification";
+
 export default {
   data() {
     return {
@@ -46,23 +68,55 @@ export default {
         username: "Guest",
         roles: ["Guest"],
       },
-      messages: [
+      userTicketsList: [
         {
-          id: 1,
-          dateTime: "2025-01-12T14:30:00",
-          content:
+          id: 0,
+          timestamp: "2025-01-12T14:30:00",
+          subject:
             "Suspendisse vehicula sapien felis, quis fermentum justo ultrices at. Ut ornare erat nec malesuada aliquet. Sed scelerisque, lorem eget maximus gravida, sem odio ultricies lectus, sit amet tincidunt tortor magna nec ex.",
-        },
-        {
-          id: 2,
-          dateTime: "2025-01-13T09:15:00",
-          content:
-            "Sed eget accumsan lorem. Morbi lorem justo, dapibus sit amet arcu at, dignissim placerat magna. Fusce faucibus nec enim id convallis. Duis quam est, egestas et dapibus viverra, bibendum non mauris. Sed ipsum purus, sagittis eget nulla vel, accumsan blandit ex. Quisque dui leo, tincidunt eget volutpat a, porta et nulla. Proin convallis tortor tellus, volutpat pellentesque felis porta vitae.",
+          status: "Aberta",
         },
       ],
     };
   },
+  async created() {
+    const toast = useToast();
+    try {
+      // TODO: Use Auth Bearer with token to send user id
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user || !user.token) {
+        toast.error("Falha na autenticação!", { timeout: 3000 });
+        // Redirect user
+      }
+
+      this.filteredTickets = await ticketService.getTickets(user.id);
+      this.loadUserData(this.filteredTickets);
+    } catch (error) {
+      console.log(error);
+      toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
+    }
+  },
   methods: {
+    redirectToUpdateUserPage() {
+      this.$router.push("/user/update");
+    },
+    loadUserData(data = []) {
+      data.forEach((item) => {
+        const statusMap = {
+          open: "Aberta",
+          closed: "Fechada",
+          in_progress: "Em andamento",
+        };
+        const retrievedUserTicket = {
+          id: item.id,
+          subject: item.subject,
+          status: statusMap[item.status] || "Desconhecido",
+          timestamp: item.created_at,
+        };
+        this.userTicketsList.push(retrievedUserTicket);
+      });
+      console.log("User tickets found", this.userTicketsList.length);
+    },
     formatDateTime(dateTime) {
       const date = new Date(dateTime);
       return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
@@ -70,8 +124,8 @@ export default {
         minute: "2-digit",
       })}`;
     },
-    truncateMessage(message) {
-      return message.length > 30 ? message.slice(0, 30) + "..." : message;
+    truncateText(text) {
+      return text.length > 30 ? text.slice(0, 30) + "..." : text;
     },
   },
 };

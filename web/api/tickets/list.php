@@ -27,7 +27,7 @@ try {
     }
     // TODO: Adicionar validação com token
 
-    $$user_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+    $user_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
     if (!$user_id) {
         http_response_code(400);

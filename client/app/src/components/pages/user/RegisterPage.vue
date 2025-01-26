@@ -31,7 +31,8 @@
               <div class="mb-3">
                 <label for="password" class="form-label">Senha</label>
                 <input
-                  type="password"  id="password"
+                  type="password"
+                  id="password"
                   class="form-control"
                   v-model="password"
                   placeholder="Digite sua senha"
@@ -47,7 +48,12 @@
                   required
                 />
                 <label class="form-check-label" for="permission">
-                  Concordo com os <a href="#" target="_blank" rel="noopener noreferrer">Termos de Uso</a> e a <a href="#" target="_blank" rel="noopener noreferrer">Política de Privacidade</a>.
+                  Concordo com os
+                  <a href="#" target="_blank" rel="noopener noreferrer">Termos de Uso</a>
+                  e a
+                  <a href="#" target="_blank" rel="noopener noreferrer"
+                    >Política de Privacidade</a
+                  >.
                 </label>
               </div>
               <div v-if="error" class="alert alert-danger mt-2" role="alert">
@@ -65,56 +71,43 @@
 </template>
 
 <script>
-import axios from 'axios';
+import userService from "@/services/userService";
 
 export default {
-  name: 'RegisterPage',
+  name: "RegisterPage",
   data() {
     return {
       username: "",
       password: "",
       email: "",
       permission: false,
-      error: null
+      error: null,
     };
   },
   methods: {
     async register() {
       this.error = null;
-
       if (!this.username || !this.password || !this.email) {
         this.error = "Todos os campos são obrigatórios.";
         return;
       }
-
-      try{
-        const response = await axios.post('http://localhost:8080/api/users/register.php', {
-          username: this.username,
-          email: this.email,
-          password: this.password,
-        });
-
+      const response = await userService.registerUser();
       if (response.status === 201) {
         alert(`Usuário ${this.username} cadastrado com sucesso!`);
         this.username = "";
         this.password = "";
         this.email = "";
         this.$router.push("/dashboard");
+      } else {
+        this.error = response.error || "Erro ao registar usuário.";
       }
-      } catch(error) {
-        if (error.response) {
-          this.error = error.response.data.message || 'Erro ao registrar usuário';
-        } else {
-          this.error = 'Erro de rede ou servidor';
-        }
-      }
-    }
+    },
   },
   mounted() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (user && user.token){
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user && user.token) {
       this.$router.push("/dashboard");
     }
-  }
+  },
 };
 </script>

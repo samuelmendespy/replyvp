@@ -112,7 +112,6 @@ try {
             ]
         ];
 
-        $userid = $user['id'];
         $jwt = JWT::encode($payload, $secretKey, 'HS256');
 
         http_response_code(200);

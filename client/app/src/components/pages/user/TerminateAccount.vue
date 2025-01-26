@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import userService from "@/services/userService";
 import { useToast } from "vue-toastification";
 
 export default {
@@ -86,25 +86,23 @@ export default {
     testDeleteAccount() {
       // TODO: Implement method to delete account
       if (this.confirmation) {
-        this.testScheduleDeletion();
+        this.deleteUserAccount();
       } else {
         alert(`Operação cancelada! \n Retornando para página inicial!`);
       }
     },
-    testScheduleDeletion() {
-      axios
-        .delete("http://localhost:8080/api/users/delete.php", {
-          id: this.user.id,
-        })
+    deleteUserAccount() {
+      userService
+        .terminateAccount(this.user.id)
         .then((response) => {
-          this.toast.success("Sucesso ao encerrar a conta!", { timeout: 3000 });
+          this.$toast.success("Sucesso ao encerrar a conta!", { timeout: 3000 });
           console.log("O cadastro do usuário foi apagado com sucesso", response.data);
+          this.$router.push("/");
         })
         .catch((error) => {
-          this.toast.error("Falha ao encerrar a conta!", { timeout: 3000 });
-          console.error("Falha ao delete o recurso", error);
+          this.$toast.error("Falha ao encerrar a conta!", { timeout: 3000 });
+          console.error("Falha ao deletar o recurso", error);
         });
-      this.$router.push("/");
     },
   },
 };

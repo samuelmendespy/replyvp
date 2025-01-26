@@ -5,7 +5,7 @@
         <div class="card shadow">
           <div class="card-body p-4">
             <h2 class="card-title text-center mb-4">Entrar em IA.ContactCenter</h2>
-            <form @submit.prevent="loginUser">
+            <form @submit.prevent="handleUserSignIn">
               <div class="mb-3">
                 <label for="username" class="form-label">Nome de usuário</label>
                 <input
@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import axios from "axios";
+import { loginUser } from "@/services/authService";
 
 export default {
   name: "LoginPage",
@@ -68,39 +68,18 @@ export default {
     }
   },
   methods: {
-    async loginUser() {
+    async handleUserSignIn() {
       this.error = null;
-      try {
-        const response = await axios.post("http://localhost:8080/auth/users/auth.php", {
-          username: this.username,
-          password: this.password,
-        });
+      const response = await loginUser(this.username, this.password);
 
-        if (response.status === 200) {
-          const user = response.data.user;
-          const token = response.data.token;
-
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              id: user.id,
-              username: user.username,
-              roles: user.roles,
-              token: token,
-            })
-          );
-
-          this.$router.push("/dashboard");
-        } else {
-          const errorData = await response.json();
-          this.error = errorData.error || "Erro ao tentar fazer login.";
-        }
-      } catch (err) {
-        this.error = "Erro na comunicação com o servidor. Tente novamente mais tarde.";
-      } finally {
-        this.username = "";
-        this.password = "";
+      if (response.status === 200) {
+        this.$router.push("/dashboard");
+      } else {
+        this.error = response.error || "Erro ao tentar fazer login.";
       }
+
+      this.username = "";
+      this.password = "";
     },
   },
 };

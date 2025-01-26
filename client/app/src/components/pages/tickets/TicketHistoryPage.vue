@@ -4,20 +4,22 @@
     <table class="table table-striped table-bordered">
       <thead class="table-dark">
         <tr>
-          <th>ID</th>
+          <th>REF#</th>
           <th>Assunto</th>
           <th>Status</th>
-          <th>Horário de Envio</th>
+          <th>Criado em:</th>
+          <th>Fechado em:</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(message, index) in sample" :key="index">
-          <td>{{ message.username }}</td>
+        <tr v-for="(message, index) in ticketList" :key="index">
+          <td>{{ message.ticket_id }}</td>
           <td>{{ message.subject }}</td>
           <td>
             {{ message.status }}
           </td>
           <td>{{ formatDate(message.timestamp) }}</td>
+          <td>{{ message.finished }}</td>
         </tr>
       </tbody>
     </table>
@@ -28,7 +30,7 @@
 </template>
 
 <script>
-import apiService from "@/services/apiService";
+import ticketService from "@/services/ticketService";
 import { useToast } from "vue-toastification";
 
 export default {
@@ -41,12 +43,13 @@ export default {
         roles: ["Guest"],
         token: "A",
       },
-      sample: [
+      ticketList: [
         {
-          username: "samuelmendespy",
-          subject: "1",
+          ticket_id: "0",
+          subject: "Teste",
           status: "Closed",
           timestamp: "2025-01-09 10:00:00",
+          finished: "1 hour",
         },
       ],
       tickets: [],
@@ -62,10 +65,11 @@ export default {
         toast.error("Falha na autenticação!", { timeout: 3000 });
         // Redirect user
       }
-      this.filteredTickets = await apiService.getTickets(user.id);
+      this.filteredTickets = await ticketService.getTickets(user.id);
+      console.log("Tickets", this.filteredTickets);
       this.loadData(this.filteredTickets);
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
       toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
     }
   },
@@ -82,16 +86,15 @@ export default {
         };
 
         const newItem = {
-          username: `User id: ${item.id}`,
+          ticket_id: item.id,
           subject: item.subject,
           status: statusMap[item.status] || "Desconhecido",
           timestamp: item.created_at,
+          finished: item.finished_at || "-",
         };
 
-        this.sample.push(newItem);
+        this.ticketList.push(newItem);
       });
-      console.log("Data loaded");
-      console.log(this.sample);
     },
     formatDate(timestamp) {
       const date = new Date(timestamp);
