@@ -49,7 +49,7 @@ export default {
         roles: "guest",
         username: "Guest",
       },
-      newMessage: this.$route.query.message || "Sem mensagem",
+      newMessage: this.$route.query.message || "",
       subject: this.$route.query.subject || "Assunto indefinido",
       ticketId: this.$route.query.ref || 0,
       isTicketOpen: false,
@@ -61,26 +61,17 @@ export default {
   },
   methods: {
     async getMessages() {
+      // TODO: Use Auth Bearer with token to send user id
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user || !user.token) {
+        this.toast.error("Falha na autenticação!", { timeout: 3000 });
+        // Redirect user
+      }
       try {
-        // TODO: Use Auth Bearer with token to send user id
-        const user = JSON.parse(localStorage.getItem("user"));
-        if (!user || !user.token) {
-          this.toast.error("Falha na autenticação!", { timeout: 3000 });
-          // Redirect user
-        } else {
-          const response = await ticketService.getTicketMessages(this.ticketId, user.id);
-
-          if (response.status === 200) {
-            this.filteredMessages = response.data.messages;
-            console.log(this.filteredMessages);
-            this.loadMessagesData(this.filteredMessages);
-          } else {
-            this.toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
-          }
-        }
+        const response = await ticketService.getTicketMessages(this.ticketId, user.id);
+        this.loadMessagesData(response);
       } catch (error) {
-        console.log(error);
-        this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
+        this.toast.error("Ocorreu um erro ao carregar mensagens do ticket!", {
           timeout: 3000,
         });
       }
@@ -88,31 +79,29 @@ export default {
     loadMessagesData(data = []) {
       data.forEach((item) => {
         const newItem = {
-          message_id: item.id,
-          subject: item.subject,
-          sender: item.messages.sender,
+          message_id: item.message_id,
+          text: item.text,
+          sender: item.sender,
           timestamp: item.created_at,
         };
         this.messageList.push(newItem);
       });
-
-      console.log("Data loaded");
-      console.log(this.messageList.length());
+      this.toast.info("Carregando mensagens", {
+        timeout: 3000,
+      });
     },
     loadFreshMessage(freshMessage) {
-      console.log(freshMessage);
-      console.log(this.messageList[0]);
-
       try {
         this.messageList.push(freshMessage);
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
         this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
           timeout: 3000,
         });
       }
     },
     sendMessage() {
+      console.log(this.newMessage);
       if (this.newMessage.trim() !== "") {
         this.messageList.push({
           message_id: 0,
@@ -132,17 +121,7 @@ export default {
           this.newMessage
         );
 
-        if (response.status === 201) {
-          const lastUserMessage = response.data.added;
-          const compact = {
-            message_id: lastUserMessage.message_id,
-            text: lastUserMessage.text,
-            sender: "user",
-            timestamp: lastUserMessage.compact,
-          };
-
-          this.loadFreshMessage(compact);
-        }
+        this.loadFreshMessage(response);
 
         this.newMessage = "";
         setTimeout(this.fakeReply, 1000);
@@ -176,13 +155,16 @@ export default {
       }
     },
     submitNewMessage() {
-      console.log(this.isTicketOpen);
+      if (this.newMessage === "") {
+        this.toast.error("Erro: mensagem em branco!", {
+          timeout: 3000,
+        });
+        return;
+      }
+
       if (this.isTicketOpen) {
-        // this.sendMessage();
         this.addNewUserMessage();
       } else {
-        // REGISTER NEW TICKET
-
         this.createNewTicket();
       }
     },
@@ -204,11 +186,13 @@ export default {
     },
     checkTicket() {
       if (this.ticketId != 0) {
-        this.toast.info(`Carregando Ticket REF ${this.ticketId}`, { timeout: 3000 });
+        this.toast.info(`Ticket REF#${this.ticketId}`, { timeout: 3000 });
         this.isTicketOpen = true;
         this.getMessages();
       } else {
-        this.toast.info(`Envie sua mensagem para abrir o ticket`, { timeout: 4000 });
+        this.toast.info(`Envie sua mensagem para abrir um novo ticket`, {
+          timeout: 4000,
+        });
       }
     },
   },
@@ -234,6 +218,8 @@ export default {
   padding: 10px;
   max-height: 400px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .message {
@@ -241,18 +227,22 @@ export default {
   border-radius: 10px;
   margin: 5px 0;
   max-width: 70%;
+  display: inline-block;
+  line-break: anywhere;
 }
 
 .user-message {
   background: #dcf8c6;
   align-self: flex-end;
   text-align: right;
+  margin-left: auto;
 }
 
 .support-message {
   background: #fff;
   align-self: flex-start;
   text-align: left;
+  margin-right: auto;
 }
 
 .chat-input {

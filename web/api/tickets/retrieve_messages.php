@@ -53,7 +53,7 @@ try {
             $messages[] = [
                 "message_id" => $row['id'],
                 "text" => $row['message'],
-                "sender" => $row['user_id'],
+                "sender" => "user",
                 "timestamp" => $row['created_at']
             ];
         }

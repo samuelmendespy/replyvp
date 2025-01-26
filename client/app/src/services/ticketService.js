@@ -30,32 +30,28 @@ const ticketService = {
       throw error;
     }
   },
-  async addNewMessage(ticketId, userId, message){
+  async addNewMessage(ticketId, userId, messageContent){
       try {
         const response = await axios.post(
           `${TICKETS_API_URL}/new_message.php`,
           {
             ticket_id: ticketId,
             user_id: userId,
-            message: message,
+            message: messageContent,
           }
         );
-
         if (response.status === 201) {
-          const lastUserMessage = response.data.added;
-          const compact = {
-            message_id: lastUserMessage.message_id,
-            text: lastUserMessage.text,
+          const lastUserMessage = {
+            message_id: response.data.added.message_id,
+            text: response.data.added.text,
             sender: "user",
-            timestamp: lastUserMessage.compact,
+            timestamp: response.data.added.compact,
           };
-
-          this.loadFreshMessage(compact);
+          return lastUserMessage;
         }
 
-        this.newMessage = "";
         setTimeout(this.fakeReply, 1000);
-      } catch (err) {
+      } catch (error) {
         this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
           timeout: 3000,
         });
@@ -68,12 +64,17 @@ const ticketService = {
         {
           params: {
             ticket_id: ticketId,
-            id: userId,
+            user_id: userId,
           },
         }
       );
 
-      return response.data.tickets;
+      if (response.status === 200) {
+        // Return messages
+        return response.data.messages;
+      } else {
+        return response;
+      }
 
     } catch (error) {
       console.error("Erro ao obter mensagens:", error);
