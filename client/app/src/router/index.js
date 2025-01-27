@@ -40,7 +40,7 @@ const routes = [
   { path: '/tickets/new', name: 'NewTicketPage', component: NewTicketPage },
   { path: '/finished', name: 'FinishedList', component: FinishedList, meta: {requiresAdmin: true }},
   { path: '/support/pending', name: 'UnansweredList', component: UnansweredList, meta: {requiresSupport: true }},
-  { path: '/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true }}
+  { path: '/admin/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true }}
 ];
 
 const router = createRouter({
@@ -51,24 +51,31 @@ const router = createRouter({
 const toast = useToast();
 
 router.beforeEach((to, from, next) => {
+  const user = JSON.parse(localStorage.getItem("user"));
   const requiresAdmin = to.matched.some((record) => record.meta.requiresAdmin);
   const requiresManager = to.matched.some((record) => record.meta.requiresManager);
   const requiresSupport = to.matched.some((record) => record.meta.requiresSupport);
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (user && user.roles && user.roles.includes('admin')) {
+    toast.info('Você possui diretos de administradores!', { timeout: 3000 });
+
+  } else {
+    console.log('O usuário não tem o papel de admin ou os dados do usuário são inválidos.');
+  }
 
   if (requiresAuth) {
     if(!user || !user.token){
       toast.warning('Necessário fazer login!', { timeout: 3000 });
       next("/login");
     }
-  }
-
+  } 
+  
   if (requiresAdmin) { 
     if (!user || !user.roles.includes('admin')) {
-      toast.warning('Conteúdo com acesso restrito para administradores!', { timeout: 3000 });
-      return next({ path: '/' });
-    } 
+      toast.error('Conteúdo com acesso restrito para administradores!', { timeout: 3000 });
+      next({ path: '/' });
+    }
   }
   
   if (requiresManager) {
@@ -81,7 +88,7 @@ router.beforeEach((to, from, next) => {
   if (requiresSupport) {
     if (!user || (!user.roles.includes('admin') && !user.roles.includes('manager') && !user.roles.includes('support'))) {
       toast.error('Conteúdo restrito para funcionários!', { timeout: 3000 });
-      return next({path: '/'});
+      next({path: '/'});
     }
   }
   

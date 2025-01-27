@@ -64,6 +64,7 @@ export default {
   mounted() {
     const user = JSON.parse(localStorage.getItem("user"));
     if (user && user.token) {
+      console.log("Already logged in");
       this.$router.push("/dashboard");
     }
   },
