@@ -14,14 +14,19 @@ const ticketService = {
       throw error;
     }
   },
-  async getPendingTickets(userId, token) {
+  async getPendingTickets(supportId, token) {
+    // TODO: Compare supportId with token id
+    console.log(supportId);
     try {
       const response = await axios.get(`${TICKETS_API_URL}/open_tickets.php`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      return response.data.tickets;
+
+      if (response.status === 200) {
+        return response.data.tickets;
+      }
     } catch (error) {
       console.error("Erro ao buscar tickets:", error);
       throw error;
@@ -62,8 +67,31 @@ const ticketService = {
           };
           return lastUserMessage;
         }
-
-        setTimeout(this.fakeReply, 1000);
+      } catch (error) {
+        this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
+          timeout: 3000,
+        });
+      }
+  },
+  async addNewSupportReply(ticketId, supportId, messageContent){
+      try {
+        const response = await axios.post(
+          `${TICKETS_API_URL}/new_message.php`,
+          {
+            ticket_id: ticketId,
+            supportId: supportId,
+            message: messageContent,
+          }
+        );
+        if (response.status === 201) {
+          const lastUserMessage = {
+            message_id: response.data.added.message_id,
+            text: response.data.added.text,
+            sender: "support",
+            timestamp: response.data.added.compact,
+          };
+          return lastUserMessage;
+        }
       } catch (error) {
         this.toast.error("Ocorreu um erro ao conectar com o servidor!", {
           timeout: 3000,
@@ -83,7 +111,6 @@ const ticketService = {
       );
 
       if (response.status === 200) {
-        // Return messages
         return response.data.messages;
       } else {
         return response;

@@ -17,7 +17,7 @@ const supportService = {
       );
 
     if (response.status === 200) {
-      return response.data;
+      return response;
     } else {
       return response;
     } 

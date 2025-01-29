@@ -11,7 +11,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(message, index) in sample" :key="index">
+        <tr v-for="(message, index) in ticketsList" :key="index">
           <td>{{ message.is_repeat ? "Reincidente" : "Primeiro" }}</td>
           <td>
             {{
@@ -20,7 +20,10 @@
           </td>
           <td>{{ formatDate(message.timestamp) }}</td>
           <td>
-            <button class="btn btn-warning btn-sm" @click="assistTicket(ticket_id)">
+            <button
+              class="btn btn-warning btn-sm"
+              @click="assistTicket(message.ticket_id)"
+            >
               Dar Assistência
             </button>
           </td>
@@ -34,7 +37,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import { useToast } from "vue-toastification";
 import supportService from "@/services/supportService";
 
@@ -42,7 +44,12 @@ export default {
   name: "PendingTicketsList",
   data() {
     return {
-      sample: [
+      supportUser: JSON.parse(localStorage.getItem("user")) || {
+        id: 0,
+        username: "Guest",
+        roles: ["Guest"],
+      },
+      ticketsList: [
         {
           ticket_id: "AB0123",
           is_repeat: false,
@@ -75,25 +82,12 @@ export default {
         // Redirect user
         this.redirectToLogin();
       } else {
-        const response = await axios.get(
-          `http://localhost:8080/api/tickets/open_tickets.php`,
-          {
-            headers: {
-              Authorization: `Bearer ${user.token}`,
-            },
-          }
-        );
-
-        if (response.status === 200) {
-          this.openedTickets = response.data.open_tickets;
-          console.log(this.openedTickets);
-          this.loadOpenedTicketsData(this.openedTickets);
-        } else {
-          toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
-        }
+        const token = user.token;
+        const supportId = user.id;
+        this.getTickets(supportId, token);
       }
-    } catch (err) {
-      console.log(err);
+    } catch (error) {
+      console.log(error);
       toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
     }
   },
@@ -101,37 +95,43 @@ export default {
     redirectToLogin() {
       this.$router.push("/login");
     },
-    async assistTicket() {
+    redirectToReplyTicket(ticketId) {
+      console.log("Redirecionando para o ticket ", ticketId);
+      this.$router.push("/login");
+    },
+    async getTickets(supportId, token) {
+      const response = await supportService.getPendingTickets(supportId, token);
+      if (response.status === 200) {
+        this.loadPendingTicketsData(response);
+      } else {
+        this.toast.error("Ocorreu um erro na resposta servidor!", { timeout: 3000 });
+      }
+    },
+    async assistTicket(ticketId) {
       try {
         const user = JSON.parse(localStorage.getItem("user"));
-        if (!user || !user.token) {
-          toast.error("Falha na autenticação!", { timeout: 3000 });
-        } else {
-          const response = await supportService.assistTicket(ticketId, token);
+        const token = user.token;
+        const response = await supportService.assistTicket(ticketId, token);
+        if (response.status === 200) {
+          console.log("Autorização recebida para tratar o ticket escolhido");
+          this.redirectToReplyTicket(ticketId);
         }
       } catch (error) {
         console.log(error);
       }
     },
-    loadOpenedTicketsData(data = []) {
+    loadPendingTicketsData(data = []) {
       data.forEach((item) => {
-        const statusMap = {
-          open: "Aberta",
-          closed: "Fechada",
-          in_progress: "Em andamento",
-        };
-
+        // TODO: ticket_id
         const newItem = {
-          username: `${item.username}`,
+          ticket_id: 0,
+          is_repeat: false,
           subject: item.subject,
-          status: statusMap[item.status] || "Desconhecido",
           timestamp: item.created_at,
         };
 
-        this.sample.push(newItem);
+        this.ticketsList.push(newItem);
       });
-      console.log("Data loaded");
-      console.log(this.sample);
     },
     formatDate(timestamp) {
       const date = new Date(timestamp);
