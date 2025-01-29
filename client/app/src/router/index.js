@@ -16,7 +16,7 @@ import UpdateUserPage from '@/components/pages/user/UpdateUserPage.vue';
 
 import MessagesPage from '@/components/pages/tickets/MessagesPage.vue';
 import FinishedList from '@/components/pages/tickets/FinishedList.vue';
-import UnansweredList from '@/components/pages/tickets/UnansweredList.vue';
+import PendingTicketsList from '@/components/pages/support/PendingTicketsList.vue';
 import TicketSearchPage from '@/components/pages/tickets/TicketSearchPage.vue';
 import TicketHistoryPage from '@/components/pages/tickets/TicketHistoryPage.vue';
 import NewTicketPage from '@/components/pages/tickets/NewTicketPage.vue';
@@ -39,7 +39,7 @@ const routes = [
   { path: '/tickets/history', name: 'TicketHistoryPage', component: TicketHistoryPage, meta: {requiresAuth: true }},
   { path: '/tickets/new', name: 'NewTicketPage', component: NewTicketPage },
   { path: '/finished', name: 'FinishedList', component: FinishedList, meta: {requiresAdmin: true }},
-  { path: '/support/pending', name: 'UnansweredList', component: UnansweredList, meta: {requiresSupport: true }},
+  { path: '/support/pending', name: 'PendingTicketsList', component: PendingTicketsList, meta: {requiresSupport: true }},
   { path: '/admin/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true }}
 ];
 

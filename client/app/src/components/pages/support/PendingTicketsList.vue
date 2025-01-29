@@ -7,6 +7,7 @@
           <th>Reincidência</th>
           <th>Assunto</th>
           <th>Última mensagem</th>
+          <th>Ação</th>
         </tr>
       </thead>
       <tbody>
@@ -18,6 +19,11 @@
             }}
           </td>
           <td>{{ formatDate(message.timestamp) }}</td>
+          <td>
+            <button class="btn btn-warning btn-sm" @click="assistTicket(ticket_id)">
+              Dar Assistência
+            </button>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -30,9 +36,10 @@
 <script>
 import axios from "axios";
 import { useToast } from "vue-toastification";
+import supportService from "@/services/supportService";
 
 export default {
-  name: "UnansweredList",
+  name: "PendingTicketsList",
   data() {
     return {
       sample: [
@@ -93,6 +100,18 @@ export default {
   methods: {
     redirectToLogin() {
       this.$router.push("/login");
+    },
+    async assistTicket() {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (!user || !user.token) {
+          toast.error("Falha na autenticação!", { timeout: 3000 });
+        } else {
+          const response = await supportService.assistTicket(ticketId, token);
+        }
+      } catch (error) {
+        console.log(error);
+      }
     },
     loadOpenedTicketsData(data = []) {
       data.forEach((item) => {

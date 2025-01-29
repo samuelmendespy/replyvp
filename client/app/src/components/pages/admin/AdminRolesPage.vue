@@ -49,7 +49,6 @@
 </template>
 
 <script>
-import axios from "axios";
 import { useToast } from "vue-toastification";
 import adminService from "@/services/adminService";
 
@@ -110,19 +109,12 @@ export default {
   methods: {
     async updateUserRoles(userId, newRoles) {
       try {
-        const token = localStorage.getItem("token");
-        const response = await axios.put(
-          `http://localhost:8080/api/users/updateRoles.php`,
-          { userId, roles: newRoles },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const user = JSON.parse(localStorage.getItem("user"));
+        const token = user.token;
 
-        if (!response.data.success) {
-          alert("Erro ao atualizar as roles.");
+        const response = await adminService.updateUserRoles(userId, newRoles, token);
+        if (response.data.success) {
+          console.log("User updated");
         }
       } catch (error) {
         console.log(error);
@@ -136,21 +128,11 @@ export default {
           if (storedUser && storedUser.token) {
             console.log("Teste");
           }
-          const token = storedUser.token;
-          const response = await axios.delete(
-            `http://localhost:8080/api/users/deleteUser.php?userId=${userId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const adminToken = storedUser.token;
 
-          if (response.data.success) {
-            this.users = this.users.filter((user) => user.id !== userId);
-            alert("Usuário removido com sucesso.");
-          } else {
-            alert("Erro ao remover o usuário.");
+          const response = await adminService.deleteUserAsAdmin(userId, adminToken);
+          if (response.code === 204) {
+            console.log("Usuário excluído");
           }
         } catch (error) {
           console.log(error);

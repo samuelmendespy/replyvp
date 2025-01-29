@@ -14,6 +14,19 @@ const ticketService = {
       throw error;
     }
   },
+  async getPendingTickets(userId, token) {
+    try {
+      const response = await axios.get(`${TICKETS_API_URL}/open_tickets.php`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response.data.tickets;
+    } catch (error) {
+      console.error("Erro ao buscar tickets:", error);
+      throw error;
+    }
+  },
   async createTicket(userId, subject, message) {
     try {
       const response = await axios.post(`${TICKETS_API_URL}/create.php`, {
