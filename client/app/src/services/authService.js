@@ -7,8 +7,7 @@ export function getUserToken() {
   return user?.token || null;
 }
 
-export async function validateToken() {
-  const token = getUserToken();
+export async function validateToken(token) {
 
   if (!token) {
     return false;
@@ -49,6 +48,10 @@ export async function loginUser(username, password) {
 
       return {
         status: response.status,
+        data: {
+          user: user,
+          token: token,
+        },
       };
     } else {
       return { success: false, error: "Erro ao tentar fazer login." };
@@ -56,8 +59,4 @@ export async function loginUser(username, password) {
   } catch (err) {
     return { success: false, error: "Erro na comunicação com o servidor." };
   }
-}
-
-export function logoutUser() {
-  localStorage.removeItem("user");
 }

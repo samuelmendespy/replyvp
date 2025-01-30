@@ -25,14 +25,14 @@
             <router-link class="nav-link" to="/tickets/history">Meus Tickets</router-link>
           </li>
         </ul>
-        <div v-if="isUserLogged" class="d-flex align-items-center" @click="logoutUser">
+        <div
+          v-if="authStore.isUserLogged"
+          class="d-flex align-items-center"
+          @click="handleLogout"
+        >
           Logout
         </div>
-        <div
-          v-if="!isUserLogged"
-          class="d-flex align-items-center"
-          @click="navigateToLogin"
-        >
+        <div v-else class="d-flex align-items-center" @click="navigateToLogin">
           Sign in
         </div>
         <img
@@ -47,29 +47,24 @@
 </template>
 
 <script>
+import { useAuthStore } from "@/stores/authStore";
 export default {
   name: "AppNavbar",
-  data() {
-    return {
-      isUserLogged: false,
-    };
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
   },
   methods: {
     navigateToLogin() {
       this.$router.push("/login");
     },
-    logoutUser() {
-      localStorage.removeItem("user");
-      this.isUserLogged = false;
+    handleLogout() {
+      this.authStore.logout();
       this.$router.push("/");
     },
-    // TODO: Usar um serviço para monitorar o estado de login
-    checkUserLogged() {
-      this.isUserLogged = localStorage.getItem("user") !== null;
+    navigateToDashBoard() {
+      this.$router.push("/dashboard");
     },
-  },
-  mounted() {
-    this.checkUserLogged();
   },
 };
 </script>

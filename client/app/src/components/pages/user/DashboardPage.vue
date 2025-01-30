@@ -12,9 +12,13 @@
         <h5 class="card-title text-secondary fw-bold">{{ user.username }}</h5>
         <p class="card-text text-muted">{{ user.roles.join(" | ") }}</p>
         <div class="text-center mt-3">
-          <button class="btn btn-secondary" @click="redirectToUpdateUserPage">
-            Atualizar Cadastro
-          </button>
+          <i
+            class="bi bi-pencil-square btn btn-secondary p-2"
+            @click="redirectToUpdateUserPage"
+            role="button"
+            title="Atualizar Cadastro"
+          >
+          </i>
         </div>
       </div>
     </div>
@@ -38,7 +42,7 @@
             >
               <router-link
                 :to="{
-                  name: 'MessagesPage',
+                  name: user.roles.includes('user') ? 'MessagesPage' : 'ReplyTicketPage',
                   query: {
                     ref: ticket.id,
                   },

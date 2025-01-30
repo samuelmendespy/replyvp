@@ -20,6 +20,7 @@ import PendingTicketsList from '@/components/pages/support/PendingTicketsList.vu
 import TicketSearchPage from '@/components/pages/tickets/TicketSearchPage.vue';
 import TicketHistoryPage from '@/components/pages/tickets/TicketHistoryPage.vue';
 import NewTicketPage from '@/components/pages/tickets/NewTicketPage.vue';
+import ReplyTicketPage from '@/components/pages/support/ReplyTicketPage.vue';
 
 import AdminRolesPage from '@/components/pages/admin/AdminRolesPage.vue';
 
@@ -40,6 +41,7 @@ const routes = [
   { path: '/tickets/new', name: 'NewTicketPage', component: NewTicketPage },
   { path: '/finished', name: 'FinishedList', component: FinishedList, meta: {requiresAdmin: true }},
   { path: '/support/pending', name: 'PendingTicketsList', component: PendingTicketsList, meta: {requiresSupport: true }},
+  { path: '/support/reply', name: 'ReplyTicketPage', component: ReplyTicketPage, meta: {requiresSupport: true }},
   { path: '/admin/roles', name: 'AdminRolesPage', component: AdminRolesPage, meta: {requiresAdmin: true }}
 ];
 
