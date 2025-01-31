@@ -62,9 +62,6 @@ export default {
       this.authStore.logout();
       this.$router.push("/");
     },
-    navigateToDashBoard() {
-      this.$router.push("/dashboard");
-    },
   },
 };
 </script>

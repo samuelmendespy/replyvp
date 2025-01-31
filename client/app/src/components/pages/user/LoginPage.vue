@@ -74,7 +74,9 @@ export default {
       const response = await loginUser(this.username, this.password);
 
       if (response.status === 200) {
-        this.$router.push("/dashboard");
+        setTimeout(() => {
+          window.location.reload(); // Hotfix para forçar a atualização da página
+        }, 100);
       } else {
         this.error = response.error || "Erro ao tentar fazer login.";
       }
