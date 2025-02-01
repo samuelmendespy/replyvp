@@ -50,7 +50,8 @@
 </template>
 
 <script>
-import { loginUser } from "@/services/authService";
+import { useAuthStore } from "@/stores/authStore";
+import { mapActions } from "pinia";
 
 export default {
   name: "LoginPage",
@@ -62,25 +63,24 @@ export default {
     };
   },
   mounted() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user && user.token) {
+    const authStore = useAuthStore();
+    if (authStore.isUserLogged) {
       console.log("Already logged in");
       this.$router.push("/dashboard");
     }
   },
   methods: {
+    ...mapActions(useAuthStore, ["login"]),
     async handleUserSignIn() {
       this.error = null;
-      const response = await loginUser(this.username, this.password);
 
-      if (response.status === 200) {
-        setTimeout(() => {
-          window.location.reload(); // Hotfix para forçar a atualização da página
-        }, 100);
-      } else {
-        this.error = response.error || "Erro ao tentar fazer login.";
+      try {
+        await this.login(this.username, this.password);
+        this.$router.push("/dashboard");
+      } catch (error) {
+        this.error = "Erro ao tentar fazer login.";
       }
-
+      // Clear fields to force retype login info
       this.username = "";
       this.password = "";
     },
