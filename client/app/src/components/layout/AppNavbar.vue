@@ -18,10 +18,10 @@
           <li class="nav-item">
             <router-link class="nav-link" to="/">Home</router-link>
           </li>
-          <li class="nav-item">
+          <li v-if="authStore.isUserLogged" class="nav-item">
             <router-link class="nav-link" to="/messages">Abrir Conversa</router-link>
           </li>
-          <li class="nav-item">
+          <li v-if="authStore.isUserLogged" class="nav-item">
             <router-link class="nav-link" to="/tickets/history">Meus Tickets</router-link>
           </li>
         </ul>
@@ -46,23 +46,19 @@
   </nav>
 </template>
 
-<script>
+<script setup>
 import { useAuthStore } from "@/stores/authStore";
-export default {
-  name: "AppNavbar",
-  setup() {
-    const authStore = useAuthStore();
-    return { authStore };
-  },
-  methods: {
-    navigateToLogin() {
-      this.$router.push("/login");
-    },
-    handleLogout() {
-      this.authStore.logout();
-      this.$router.push("/");
-    },
-  },
+import { useRouter } from "vue-router";
+const authStore = useAuthStore();
+const router = useRouter();
+
+const navigateToLogin = () => {
+  router.push("/login");
+};
+
+const handleLogout = () => {
+  authStore.logout();
+  router.push("/");
 };
 </script>
 

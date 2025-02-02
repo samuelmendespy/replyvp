@@ -52,8 +52,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "AppHome",
-};
+<script setup>
+console.log("Home Page");
 </script>

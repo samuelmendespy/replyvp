@@ -1,4 +1,4 @@
-import { loginUser, validateToken } from "@/services/authService";
+import { loginUser, validateToken } from "@/services/AuthService";
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", {

@@ -111,10 +111,8 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "PrivacyPolicy",
-};
+<script setup>
+console.log("Privacy Police Page");
 </script>
 
 <style scoped>

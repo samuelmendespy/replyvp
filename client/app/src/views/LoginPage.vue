@@ -49,41 +49,36 @@
   </div>
 </template>
 
-<script>
+<script setup>
 import { useAuthStore } from "@/stores/authStore";
-import { mapActions } from "pinia";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 
-export default {
-  name: "LoginPage",
-  data() {
-    return {
-      username: "",
-      password: "",
-      error: null,
-    };
-  },
-  mounted() {
-    const authStore = useAuthStore();
-    if (authStore.isUserLogged) {
-      console.log("Already logged in");
-      this.$router.push("/dashboard");
-    }
-  },
-  methods: {
-    ...mapActions(useAuthStore, ["login"]),
-    async handleUserSignIn() {
-      this.error = null;
+const router = useRouter();
+const username = ref("");
+const password = ref("");
+const error = ref(null);
+const authStore = useAuthStore();
 
-      try {
-        await this.login(this.username, this.password);
-        this.$router.push("/dashboard");
-      } catch (error) {
-        this.error = "Erro ao tentar fazer login.";
-      }
-      // Clear fields to force retype login info
-      this.username = "";
-      this.password = "";
-    },
-  },
+onMounted(() => {
+  if (authStore.isUserLogged) {
+    console.log(1);
+    router.push("/dashboard");
+  }
+});
+
+const handleUserSignIn = async () => {
+  error.value = null;
+
+  try {
+    await authStore.login(username.value, password.value);
+    console.log(2);
+    router.push("/dashboard");
+  } catch (err) {
+    error.value = "Erro ao tentar fazer login.";
+  }
+  // Clear fields to force retype login info
+  username.value = "";
+  password.value = "";
 };
 </script>

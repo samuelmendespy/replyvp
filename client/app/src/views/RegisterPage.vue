@@ -70,44 +70,37 @@
   </div>
 </template>
 
-<script>
-import userService from "@/services/userService";
+<script setup>
+import userService from "@/services/UserService";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-export default {
-  name: "RegisterPage",
-  data() {
-    return {
-      username: "",
-      password: "",
-      email: "",
-      permission: false,
-      error: null,
-    };
-  },
-  methods: {
-    async register() {
-      this.error = null;
-      if (!this.username || !this.password || !this.email) {
-        this.error = "Todos os campos são obrigatórios.";
-        return;
-      }
-      const response = await userService.registerUser();
-      if (response.status === 201) {
-        alert(`Usuário ${this.username} cadastrado com sucesso!`);
-        this.username = "";
-        this.password = "";
-        this.email = "";
-        this.$router.push("/dashboard");
-      } else {
-        this.error = response.error || "Erro ao registar usuário.";
-      }
-    },
-  },
-  mounted() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user && user.token) {
-      this.$router.push("/dashboard");
-    }
-  },
+const router = useRouter();
+const username = ref("");
+const password = ref("");
+const email = "";
+const permission = ref(false);
+const error = ref(null);
+
+const register = async () => {
+  this.error = null;
+  if (!this.username || !this.password || !this.email) {
+    this.error = "Todos os campos são obrigatórios.";
+    return;
+  }
+  const response = await userService.registerUser();
+  if (response.status === 201) {
+    alert(`Usuário ${this.username} cadastrado com sucesso!`);
+    username.value = "";
+    password.value = "";
+    email.value = "";
+    router.push("/dashboard");
+  } else {
+    error.value = response.error || "Erro ao registar usuário.";
+  }
 };
+const user = JSON.parse(localStorage.getItem("user"));
+if (user && user.token) {
+  this.$router.push("/dashboard");
+}
 </script>

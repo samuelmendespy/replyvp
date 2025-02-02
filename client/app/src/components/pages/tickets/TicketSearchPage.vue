@@ -5,7 +5,7 @@
         <div class="card shadow">
           <div class="card-body p-4">
             <h2 class="card-title text-center mb-4">Pesquisar Ticket</h2>
-            <form @submit.prevent="searchMessageHistory()">
+            <form @submit.prevent="searchTicketHistory()">
               <div class="mb-3">
                 <label for="code" class="form-label">Código do Ticket</label>
                 <input
@@ -31,26 +31,21 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "TicketSearchPage",
-  data() {
-    return {
-      code: "",
-      error: null,
-    };
-  },
-  mounted() {},
-  methods: {
-    searchTicketHistory() {
-      console.log("Message history");
-      this.$router.push({
-        name: "TicketHistoryPage",
-        query: {
-          ticketid: this.code,
-        },
-      });
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const code = ref("");
+const error = ref(null);
+
+const searchTicketHistory = () => {
+  console.log("Message history");
+  router.push({
+    name: "TicketHistoryPage",
+    query: {
+      ticketid: code.value,
     },
-  },
+  });
 };
 </script>

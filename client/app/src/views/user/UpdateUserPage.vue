@@ -74,63 +74,61 @@
   </div>
 </template>
 
-<script>
-import userService from "@/services/userService";
+<script setup>
+import userService from "@/services/UserService";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
-export default {
-  name: "UpdateUserPage",
-  data() {
-    return {
-      username: "",
-      email: "",
-      password: "",
-      newEmail: "",
-      newPassword: "",
-      permission: false,
-      error: null,
-      user: JSON.parse(localStorage.getItem("user")) || {
-        id: 0,
-        username: "Guest",
-        roles: ["Guest"],
-      },
-    };
-  },
-  setup() {
-    const toast = useToast();
-    return { toast };
-  },
-  methods: {
-    async updateUser() {
-      this.error = null;
+const toast = useToast();
+const router = useRouter();
 
-      if (
-        !this.username ||
-        !this.email ||
-        !this.oldPassword ||
-        !this.newEmail ||
-        !this.newPassword ||
-        !this.permission
-      ) {
-        this.error = "Todos os campos obrigatórios devem ser preenchidos.";
-        return;
-      }
+const username = ref("");
+const email = ref("");
+const password = ref("");
+const newEmail = ref("");
+const oldEmail = ref("");
+const newPassword = ref("");
+const oldPassword = ref("");
+const permission = ref(false);
+const error = ref(null);
 
-      const response = userService.updateUser(
-        this.user.id,
-        this.oldPassword,
-        this.oldEmail,
-        this.newEmail,
-        this.newPassword
-      );
+const user = ref(
+  JSON.parse(localStorage.getItem("user")) || {
+    id: 0,
+    username: "Guest",
+    roles: ["Guest"],
+  }
+);
 
-      if (response === 200) {
-        this.toast.success("Seus dados foram atualizados com sucesso!", {
-          timeout: 3000,
-        });
-        this.$router.push("/dashboard");
-      }
-    },
-  },
+const updateUser = async () => {
+  error.value = null;
+
+  if (
+    !username.value ||
+    !email.value ||
+    !oldPassword.value ||
+    !newEmail.value ||
+    !newPassword.value ||
+    !permission.value
+  ) {
+    error.value = "Todos os campos obrigatórios devem ser preenchidos.";
+    return;
+  }
+
+  const response = userService.updateUser(
+    user.value.id,
+    oldPassword.value,
+    oldEmail.value,
+    newEmail.value,
+    newPassword.value
+  );
+
+  if (response === 200) {
+    toast.success("Seus dados foram atualizados com sucesso!", {
+      timeout: 3000,
+    });
+    router.push("/dashboard");
+  }
 };
 </script>

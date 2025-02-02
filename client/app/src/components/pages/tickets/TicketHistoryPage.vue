@@ -29,84 +29,83 @@
   </div>
 </template>
 
-<script>
-import ticketService from "@/services/ticketService";
+<script setup>
+import ticketService from "@/services/TicketService";
+import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
-export default {
-  name: "TicketHistoryPage",
-  data() {
-    return {
-      user: JSON.parse(localStorage.getItem("user")) || {
-        id: 0,
-        username: "Guest",
-        roles: ["Guest"],
-        token: "A",
-      },
-      ticketList: [
-        {
-          ticket_id: "0",
-          subject: "Teste",
-          status: "Closed",
-          timestamp: "2025-01-09 10:00:00",
-          finished: "1 hour",
-        },
-      ],
-      tickets: [],
-      filteredTickets: [],
-    };
+const toast = useToast();
+const router = useRouter();
+const user = ref(
+  JSON.parse(localStorage.getItem("user")) || {
+    id: 0,
+    username: "Guest",
+    roles: ["Guest"],
+    token: "A",
+  }
+);
+const ticketList = ref([
+  {
+    ticket_id: "0",
+    subject: "Teste",
+    status: "Closed",
+    timestamp: "2025-01-09 10:00:00",
+    finished: "1 hour",
   },
-  async created() {
-    const toast = useToast();
-    try {
-      // TODO: Use Auth Bearer with token to send user id
-      const user = JSON.parse(localStorage.getItem("user"));
-      if (!user || !user.token) {
-        toast.error("Falha na autenticação!", { timeout: 3000 });
-        // Redirect user
-      }
-      this.filteredTickets = await ticketService.getTickets(user.id);
-      console.log("Tickets", this.filteredTickets);
-      this.loadData(this.filteredTickets);
-    } catch (error) {
-      console.log(error);
-      toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
+]);
+
+const filteredTickets = ref([]);
+
+onMounted(async () => {
+  try {
+    // TODO: Use Auth Bearer with token to send user id
+    if (!user.value || !user.value.token) {
+      toast.error("Falha na autenticação!", { timeout: 3000 });
+      // Redirect user
     }
-  },
-  methods: {
-    redirectToNewTicket() {
-      this.$router.push("/tickets/new");
-    },
-    loadData(data = []) {
-      data.forEach((item) => {
-        const statusMap = {
-          open: "Aberta",
-          closed: "Fechada",
-          in_progress: "Em andamento",
-        };
+    filteredTickets.value = await ticketService.getTickets(user.value.id);
+    console.log("Tickets", filteredTickets.value);
+    loadData(filteredTickets.value);
+  } catch (err) {
+    console.log(err);
+    toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
+  }
+});
 
-        const newItem = {
-          ticket_id: item.id,
-          subject: item.subject,
-          status: statusMap[item.status] || "Desconhecido",
-          timestamp: item.created_at,
-          finished: item.finished_at || "-",
-        };
+const redirectToNewTicket = () => {
+  router.push("/tickets/new");
+};
 
-        this.ticketList.push(newItem);
-      });
-    },
-    formatDate(timestamp) {
-      const date = new Date(timestamp);
-      return date.toLocaleString("pt-BR", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    },
-  },
+const loadData = (data = []) => {
+  data.forEach((item) => {
+    const statusMap = {
+      open: "Aberta",
+      closed: "Fechada",
+      in_progress: "Em andamento",
+    };
+
+    const newItem = {
+      ticket_id: item.id,
+      subject: item.subject,
+      status: statusMap[item.status] || "Desconhecido",
+      timestamp: item.created_at,
+      finished: item.finished_at || "-",
+    };
+
+    ticketList.value.push(newItem);
+  });
+};
+
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp);
+  return date.toLocaleString("pt-BR", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 </script>

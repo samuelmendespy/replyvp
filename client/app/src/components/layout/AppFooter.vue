@@ -19,12 +19,6 @@
   </footer>
 </template>
 
-<script>
-export default {
-  name: "AppFooter",
-};
-</script>
-
 <style scoped>
 .ms-3 a {
   color: #0d6efd;

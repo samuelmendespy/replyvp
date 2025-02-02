@@ -14,8 +14,6 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "NotFoundPage",
-};
+<script setup>
+console.log("Error 404 : Page Not Found");
 </script>

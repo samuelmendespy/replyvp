@@ -44,27 +44,22 @@
   </div>
 </template>
 
-<script>
-export default {
-  name: "NewTicketPage",
-  data() {
-    return {
-      ticketSubject: "",
-      messageContent: "",
-      error: null,
-    };
-  },
-  mounted() {},
-  methods: {
-    generateTicket() {
-      this.$router.push({
-        name: "MessagesPage",
-        query: {
-          subject: this.ticketSubject,
-          message: this.messageContent,
-        },
-      });
+<script setup>
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const ticketSubject = ref("");
+const messageContent = ref("");
+const error = ref(null);
+
+const generateTicket = () => {
+  router.push({
+    name: "MessagesPage",
+    query: {
+      subject: ticketSubject.value,
+      message: messageContent.value,
     },
-  },
+  });
 };
 </script>

@@ -51,22 +51,19 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      username: "",
-      subject: "",
-      message: "",
-    };
-  },
-  methods: {
-    handleSubmit() {
-      alert(`Mensagem enviada por: ${this.username}\nMensagem: ${this.message}`);
-      this.subject = "";
-      this.message = "";
-    },
-  },
+<script setup>
+import { ref } from "vue";
+
+const username = ref("");
+const subject = ref("");
+const message = ref("");
+
+const handleSubmit = () => {
+  console.log(
+    `Enviando mensagem de ${username.value}\nAssunto: ${subject.value} \nMensagem ${message.value}`
+  );
+  subject.value = "";
+  message.value = "";
 };
 </script>
 

@@ -7,7 +7,7 @@
             <h2 class="card-title text-center mb-4">
               Apagar sua conta em IA.ContactCenter
             </h2>
-            <form @submit.prevent="testDeleteAccount">
+            <form @submit.prevent="handleDeleteAccount">
               <div class="mb-3">
                 <label for="email" class="form-label"
                   >Confirme o seu endereço de email</label
@@ -58,52 +58,50 @@
   </div>
 </template>
 
-<script>
-import userService from "@/services/userService";
+<script setup>
+import userService from "@/services/UserService";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
-export default {
-  name: "TerminateAccount",
-  data() {
-    return {
-      user: JSON.parse(localStorage.getItem("user")) || {
-        id: 0,
-        username: "Guest",
-        roles: ["Guest"],
-        token: "A",
-      },
-      password: "",
-      email: "",
-      confirmation: false,
-      error: null,
-    };
-  },
-  setup() {
-    const toast = useToast();
-    return { toast };
-  },
-  methods: {
-    testDeleteAccount() {
-      // TODO: Implement method to delete account
-      if (this.confirmation) {
-        this.deleteUserAccount();
-      } else {
-        alert(`Operação cancelada! \n Retornando para página inicial!`);
-      }
-    },
-    deleteUserAccount() {
-      userService
-        .terminateAccount(this.user.id)
-        .then((response) => {
-          this.$toast.success("Sucesso ao encerrar a conta!", { timeout: 3000 });
-          console.log("O cadastro do usuário foi apagado com sucesso", response.data);
-          this.$router.push("/");
-        })
-        .catch((error) => {
-          this.$toast.error("Falha ao encerrar a conta!", { timeout: 3000 });
-          console.error("Falha ao deletar o recurso", error);
-        });
-    },
-  },
+const user = ref(
+  JSON.parse(localStorage.getItem("user")) || {
+    id: 0,
+    username: "Guest",
+    roles: ["Guest"],
+    token: "A",
+  }
+);
+
+const router = useRouter();
+const toast = useToast();
+
+const password = ref("");
+const email = ref("");
+const confirmation = ref(false);
+const error = ref(null);
+
+const handleDeleteAccount = () => {
+  // TODO: Implement method to delete account
+  if (this.confirmation) {
+    deleteUserAccount();
+  } else {
+    alert(`Operação cancelada! \n Retornando para página inicial!`);
+  }
+};
+
+const deleteUserAccount = () => {
+  userService
+    .terminateAccount(user.value.id, email.value, password.value)
+    .then((response) => {
+      toast.success("Sucesso ao encerrar a conta!", { timeout: 3000 });
+      console.log("O cadastro do usuário foi apagado com sucesso", response.data);
+      router.push("/");
+    })
+    .catch((err) => {
+      toast.error("Falha ao encerrar a conta!", { timeout: 3000 });
+      console.error("Falha ao deletar o recurso", err);
+      error.value = "Ocorreu uma falha ao deletar sua conta";
+    });
 };
 </script>
