@@ -1,16 +1,9 @@
 <template>
   <div class="chat-container">
     <div class="chat-box">
-      <div
-        v-for="(msg, index) in messageList"
-        :key="index"
-        class="message"
-        :class="msg.sender === 'user' ? 'user-message' : 'support-message'"
-      >
-        <p>{{ msg.text }}</p>
-        <small>{{ formatTime(msg.timestamp) }}</small>
-      </div>
+      <ChatMessage v-for="(msg, index) in localMessageList" :key="index" :msg="msg" />
     </div>
+    <ChatInput @sendMessage="addMessage" />
     <div class="chat-input">
       <input
         v-model="newMessage"
@@ -27,11 +20,15 @@ import ticketService from "@/services/TicketService";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
+import { useAuthStore } from "@/stores/authStore";
+import ChatMessage from "@/components/Chat/ChatMessage.vue";
 
+const authStore = useAuthStore();
 const toast = useToast();
 const router = useRouter();
 
-const messageList = ref([
+const user = authStore.user;
+const localMessageList = ref([
   {
     message_id: 0,
     text: "Oi! Preciso de suporte.",
@@ -46,40 +43,31 @@ const messageList = ref([
   },
 ]);
 
-const user = ref(
-  JSON.parse(localStorage.getItem("user")) || {
-    id: 0,
-    roles: "guest",
-    username: "Guest",
-  }
-);
-
 const newMessage = ref(router.query.message || "");
 const subject = ref(router.query.subject || "Assunto indefinido");
-
 const ticketId = ref(router.query.ref || 0);
 const isTicketOpen = ref(false);
 
 onMounted(checkTicket());
-
+// Get remote messages
 const getMessages = async () => {
   // TODO: Use Auth Bearer with token to send user id
-  const user = JSON.parse(localStorage.getItem("user"));
+
   if (!user || !user.token) {
     toast.error("Falha na autenticação!", { timeout: 3000 });
     // Redirect user
   }
   try {
-    const response = await ticketService.getTicketMessages(ticketId, user.id);
-    loadMessagesData(response);
+    const messages = await ticketService.getTicketMessages(ticketId, user.id);
+    pushMessagesToLocalList(messages);
   } catch (error) {
     toast.error("Ocorreu um erro ao carregar mensagens do ticket!", {
       timeout: 3000,
     });
   }
 };
-
-const loadMessagesData = (data = []) => {
+// Get remote messages
+const pushMessagesToLocalList = (data = []) => {
   data.forEach((item) => {
     const newItem = {
       message_id: item.message_id,
@@ -87,82 +75,15 @@ const loadMessagesData = (data = []) => {
       sender: item.sender,
       timestamp: item.created_at,
     };
-    messageList.value.push(newItem);
+    localMessageList.value.push(newItem);
   });
   toast.info("Carregando mensagens", {
     timeout: 3000,
   });
 };
 
-const loadFreshMessage = (freshMessage) => {
-  try {
-    messageList.push(freshMessage);
-  } catch (err) {
-    console.log(err);
-    toast.error("Ocorreu um erro ao conectar com o servidor!", {
-      timeout: 3000,
-    });
-  }
-};
-// TODO: Call sendMessage
-const sendMessage = () => {
-  if (newMessage.value.trim() !== "") {
-    messageList.value.push({
-      message_id: 0,
-      text: newMessage.value,
-      sender: "user",
-      timestamp: new Date(),
-    });
-    newMessage.value = "";
-    setTimeout(fakeReply, 1000);
-  }
-};
-
-const addNewUserMessage = async () => {
-  try {
-    const response = await ticketService.addNewMessage(
-      ticketId.value,
-      user.value.id,
-      newMessage.value
-    );
-
-    loadFreshMessage(response);
-
-    newMessage.value = "";
-    setTimeout(fakeReply, 1000);
-  } catch (err) {
-    console.log(err);
-    toast.error("Ocorreu um erro ao conectar com o servidor!", {
-      timeout: 3000,
-    });
-  }
-};
-
-const fakeReply = () => {
-  messageList.value.push({
-    text: "Estamos verificando sua solicitação.",
-    sender: "support",
-    timestamp: new Date(),
-  });
-};
-const createNewTicket = async () => {
-  try {
-    const createdTicketId = await ticketService.createTicket(
-      user.value.id,
-      subject.value,
-      newMessage.value
-    );
-    redirectToCreatedTicket(createdTicketId);
-  } catch (err) {
-    console.log(err);
-    toast.error("Ocorreu um erro ao conectar com o servidor!", {
-      timeout: 3000,
-    });
-  }
-};
-
-const submitNewMessage = () => {
-  if (newMessage.value === "") {
+const addMessage = (text) => {
+  if (text.trim() === "") {
     toast.error("Erro: mensagem em branco!", {
       timeout: 3000,
     });
@@ -170,10 +91,51 @@ const submitNewMessage = () => {
   }
 
   if (isTicketOpen.value) {
-    addNewUserMessage();
+    addNewUserMessage(text);
   } else {
     // TODO: Redirect to New Ticket Page
-    createNewTicket();
+    createNewTicket(text);
+  }
+
+  autoReply();
+};
+
+const addNewUserMessage = async (text) => {
+  try {
+    const userMessage = await ticketService.addNewMessage(ticketId.value, user.id, text);
+
+    pushMessagesToLocalList([userMessage]);
+    autoReply();
+  } catch (err) {
+    console.log(err);
+    toast.error("Ocorreu um erro ao enviar mensagem para o servidor!", {
+      timeout: 3000,
+    });
+  }
+};
+
+const autoReply = () => {
+  localMessageList.value.push({
+    message_id: localMessageList.value.length + 1,
+    text: "Estamos verificando sua solicitação.",
+    sender: "none",
+    timestamp: new Date(),
+  });
+};
+
+const createNewTicket = async (text) => {
+  try {
+    const createdTicketId = await ticketService.createTicket(
+      user.value.id,
+      subject.value,
+      text
+    );
+    redirectToCreatedTicket(createdTicketId);
+  } catch (err) {
+    console.log(err);
+    toast.error("Ocorreu um erro ao conectar com o servidor!", {
+      timeout: 3000,
+    });
   }
 };
 
@@ -186,13 +148,6 @@ const redirectToCreatedTicket = (newTicketId) => {
       ref: newTicketId,
     },
   });
-};
-
-const formatTime = (date) => {
-  return new Intl.DateTimeFormat("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 };
 
 const checkTicket = () => {

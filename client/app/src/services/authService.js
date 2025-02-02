@@ -1,10 +1,11 @@
 import axios from "axios";
+import { useAuthStore } from "@/stores/authStore";
 
 const AUTH_URL = "http://localhost:8080/auth/users/auth.php";
 
 export function getUserToken() {
-  const user = JSON.parse(localStorage.getItem("user"));
-  return user?.token || null;
+  const authStore = useAuthStore();
+  return authStore.user?.token || null;
 }
 
 export async function validateToken(token) {
@@ -35,17 +36,6 @@ export async function loginUser(username, password) {
     if (response.status === 200) {
       const user = response.data.user;
       const token = response.data.token;
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: user.id,
-          username: user.username,
-          roles: user.roles,
-          token: token,
-        })
-      );
-
       return {
         status: response.status,
         data: {

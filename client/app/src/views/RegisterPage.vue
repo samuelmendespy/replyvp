@@ -72,25 +72,32 @@
 
 <script setup>
 import userService from "@/services/UserService";
+import { useAuthStore } from "@/stores/authStore";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
+import { useToast } from "vue-toastification";
 
 const router = useRouter();
+const toast = useToast();
+const authStore = useAuthStore();
+
+const user = authStore.user;
+
 const username = ref("");
 const password = ref("");
-const email = "";
+const email = ref("");
 const permission = ref(false);
 const error = ref(null);
 
 const register = async () => {
-  this.error = null;
-  if (!this.username || !this.password || !this.email) {
-    this.error = "Todos os campos são obrigatórios.";
+  error.value = null;
+  if (!username.value || !password.value || !email.value) {
+    error.value = "Todos os campos são obrigatórios.";
     return;
   }
   const response = await userService.registerUser();
   if (response.status === 201) {
-    alert(`Usuário ${this.username} cadastrado com sucesso!`);
+    toast.sucess(`Você se registrou com sucesso ${username.value}`, { timeout: 6000 });
     username.value = "";
     password.value = "";
     email.value = "";
@@ -99,8 +106,7 @@ const register = async () => {
     error.value = response.error || "Erro ao registar usuário.";
   }
 };
-const user = JSON.parse(localStorage.getItem("user"));
 if (user && user.token) {
-  this.$router.push("/dashboard");
+  router.push("/dashboard");
 }
 </script>

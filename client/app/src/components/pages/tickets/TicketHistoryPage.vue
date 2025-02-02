@@ -32,19 +32,15 @@
 <script setup>
 import ticketService from "@/services/TicketService";
 import { ref, onMounted } from "vue";
+import { useAuthStore } from "@/stores/authStore";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
 const toast = useToast();
 const router = useRouter();
-const user = ref(
-  JSON.parse(localStorage.getItem("user")) || {
-    id: 0,
-    username: "Guest",
-    roles: ["Guest"],
-    token: "A",
-  }
-);
+const authStore = useAuthStore();
+
+const user = authStore.user;
 const ticketList = ref([
   {
     ticket_id: "0",
@@ -54,17 +50,16 @@ const ticketList = ref([
     finished: "1 hour",
   },
 ]);
-
 const filteredTickets = ref([]);
 
 onMounted(async () => {
   try {
     // TODO: Use Auth Bearer with token to send user id
-    if (!user.value || !user.value.token) {
+    if (!user || !user.token) {
       toast.error("Falha na autenticação!", { timeout: 3000 });
       // Redirect user
     }
-    filteredTickets.value = await ticketService.getTickets(user.value.id);
+    filteredTickets.value = await ticketService.getTickets(user.id);
     console.log("Tickets", filteredTickets.value);
     loadData(filteredTickets.value);
   } catch (err) {

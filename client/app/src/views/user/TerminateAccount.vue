@@ -60,18 +60,14 @@
 
 <script setup>
 import userService from "@/services/UserService";
+import { useAuthStore } from "@/stores/authStore";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
-const user = ref(
-  JSON.parse(localStorage.getItem("user")) || {
-    id: 0,
-    username: "Guest",
-    roles: ["Guest"],
-    token: "A",
-  }
-);
+const authStore = useAuthStore();
+
+const user = authStore.user;
 
 const router = useRouter();
 const toast = useToast();

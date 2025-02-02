@@ -39,19 +39,15 @@
 <script setup>
 import { useToast } from "vue-toastification";
 import supportService from "@/services/SupportService";
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/authStore";
 
+const authStore = useAuthStore();
 const router = useRouter();
 const toast = useToast();
 
-const supportUser = ref(
-  JSON.parse(localStorage.getItem("user")) || {
-    id: 0,
-    username: "Guest",
-    roles: ["Guest"],
-  }
-);
+const supportUser = authStore.user;
 
 const ticketsList = ref([
   {
@@ -78,15 +74,11 @@ const ticketsList = ref([
 
 onMounted(async () => {
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (!user || !user.token) {
+    if (!supportUser.value || !supportUser.value.token) {
       toast.error("Falha na autenticação!", { timeout: 3000 });
-      // Redirect user
       redirectToLogin();
     } else {
-      const token = user.token;
-      const supportId = user.id;
-      getTickets(supportId, token);
+      getTickets(supportUser.value.id, supportUser.value.token);
     }
   } catch (error) {
     console.log(error);
@@ -118,15 +110,14 @@ const getTickets = async (supportId, token) => {
 };
 const assistTicket = async (ticketId) => {
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = user.token;
+    const token = supportUser.value.token;
     const response = await supportService.assistTicket(ticketId, token);
     if (response.status === 200) {
       console.log("Autorização recebida para tratar o ticket escolhido");
       redirectToReplyTicket(ticketId);
     }
-  } catch (error) {
-    console.log(error);
+  } catch (err) {
+    console.log(err);
   }
 };
 const loadPendingTicketsData = (data = []) => {
@@ -139,7 +130,7 @@ const loadPendingTicketsData = (data = []) => {
       timestamp: item.created_at,
     };
 
-    ticketsList.push(newItem);
+    ticketsList.value.push(newItem);
   });
 };
 

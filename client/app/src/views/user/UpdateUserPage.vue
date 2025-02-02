@@ -76,12 +76,16 @@
 
 <script setup>
 import userService from "@/services/UserService";
+import { useAuthStore } from "@/stores/authStore";
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
 const toast = useToast();
 const router = useRouter();
+const authStore = useAuthStore();
+
+const user = authStore.user;
 
 const username = ref("");
 const email = ref("");
@@ -92,14 +96,6 @@ const newPassword = ref("");
 const oldPassword = ref("");
 const permission = ref(false);
 const error = ref(null);
-
-const user = ref(
-  JSON.parse(localStorage.getItem("user")) || {
-    id: 0,
-    username: "Guest",
-    roles: ["Guest"],
-  }
-);
 
 const updateUser = async () => {
   error.value = null;

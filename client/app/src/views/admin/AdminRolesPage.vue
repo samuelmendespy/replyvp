@@ -52,9 +52,11 @@
 import { useToast } from "vue-toastification";
 import adminService from "@/services/AdminService";
 import { onMounted, ref } from "vue";
+import { useAuthStore } from "@/stores/authStore";
 
-const user = ref(JSON.parse(localStorage.getItem("user")));
+const authStore = useAuthStore();
 
+const user = authStore.user;
 const users = ref([
   {
     id: 0,
@@ -73,8 +75,7 @@ const toast = useToast();
 
 onMounted(async () => {
   try {
-    // Autenticação JWT
-    const user = JSON.parse(localStorage.getItem("user"));
+    //TODO: Verifiy token existence
     const token = user.token;
 
     // Fetching usuários
