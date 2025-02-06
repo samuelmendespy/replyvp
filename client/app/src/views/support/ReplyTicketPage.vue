@@ -2,13 +2,13 @@
   <div class="chat-container">
     <div class="chat-box">
       <div
-        v-for="(msg, index) in messageList"
+        v-for="(msg, index) in localList"
         :key="index"
         class="message"
         :class="msg.sender === 'user' ? 'user-message' : 'support-message'"
       >
         <p>{{ msg.text }}</p>
-        <small>{{ formatTime(msg.timestamp) }}</small>
+        <small>{{ formatMessageTime(msg.timestamp) }}</small>
       </div>
     </div>
     <div class="chat-input">
@@ -24,14 +24,18 @@
 
 <script setup>
 import ticketService from "@/services/TicketService";
-import { ref } from "vue";
+import { formatMessageTime } from "@/utils/dateUtils";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "vue-toastification";
 
 const toast = useToast();
 const router = useRouter();
 
-const messageList = ref([
+const user = ref(JSON.parse(localStorage.getItem("user")));
+const ticketId = ref(router.query.ref || 0);
+const newMessage = ref(router.query.message || "");
+const localList = ref([
   {
     message_id: 0,
     text: "Oi! Preciso de suporte.",
@@ -45,20 +49,20 @@ const messageList = ref([
     timestamp: new Date(),
   },
 ]);
-const user = ref(JSON.parse(localStorage.getItem("user")));
 
-const newMessage = ref(router.query.message || "");
-const ticketId = ref(router.query.ref || 0);
+onMounted(async () => {
+  getChatHistory();
+});
 
-const getMessages = async () => {
+const getChatHistory = async () => {
   // TODO: Use Auth Bearer with token to send user id
   if (!user.value || !user.value.token) {
     toast.error("Falha na autenticação!", { timeout: 3000 });
-    // Redirect user
+    // TODO: Redirect user
   }
   try {
     const response = await ticketService.getTicketMessages(ticketId.value, user.value.id);
-    loadMessagesData(response);
+    pushChatHistoryToLocalList(response);
   } catch (err) {
     toast.error("Ocorreu um erro ao carregar mensagens do ticket!", {
       timeout: 3000,
@@ -66,7 +70,7 @@ const getMessages = async () => {
   }
 };
 
-const loadMessagesData = (data = []) => {
+const pushChatHistoryToLocalList = (data = []) => {
   data.forEach((item) => {
     const newItem = {
       message_id: item.message_id,
@@ -74,37 +78,19 @@ const loadMessagesData = (data = []) => {
       sender: item.sender,
       timestamp: item.created_at,
     };
-    messageList.value.push(newItem);
+    localList.value.push(newItem);
   });
   toast.info("Carregando mensagens", {
     timeout: 3000,
   });
 };
 
-const loadFreshMessage = (freshMessage) => {
-  try {
-    messageList.push(freshMessage);
-  } catch (err) {
-    console.log(err);
-    toast.error("Ocorreu um erro ao conectar com o servidor!", {
-      timeout: 3000,
-    });
+const submitNewMessage = async () => {
+  if (newMessage.value.trim() === "") {
+    toast.error("Erro: Campo de mensagem está em branco!", { timeout: 3000 });
+    return;
   }
-};
-const sendMessage = () => {
-  if (newMessage.value.trim() !== "") {
-    messageList.value.push({
-      message_id: 0,
-      text: newMessage.value,
-      sender: "support",
-      timestamp: new Date(),
-    });
 
-    newMessage.value = "";
-    setTimeout(fakeReply, 1000);
-  }
-};
-const addNewUserMessage = async () => {
   try {
     const response = await ticketService.addNewMessage(
       ticketId.value,
@@ -112,40 +98,22 @@ const addNewUserMessage = async () => {
       newMessage.value
     );
 
-    loadFreshMessage(response);
-
+    localList.value.push(response);
     newMessage.value = "";
+
     setTimeout(fakeReply, 1000);
   } catch (err) {
-    console.log(err);
-    toast.error("Ocorreu um erro ao conectar com o servidor!", {
-      timeout: 3000,
-    });
+    console.error(err);
+    toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
   }
 };
+
 const fakeReply = () => {
-  messageList.value.push({
+  localList.value.push({
     text: "Estamos verificando sua solicitação.",
     sender: "support",
     timestamp: new Date(),
   });
-};
-
-const submitNewMessage = () => {
-  if (newMessage.value === "") {
-    toast.error("Erro: mensagem em branco!", {
-      timeout: 3000,
-    });
-    return;
-  }
-
-  addNewUserMessage();
-};
-const formatTime = (date) => {
-  return new Intl.DateTimeFormat("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
 };
 </script>
 
