@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">IA.ContactCenter</a>
+      <a class="navbar-brand" href="#">REPLYVP</a>
       <button
         class="navbar-toggler"
         type="button"
@@ -17,12 +17,6 @@
         <ul class="navbar-nav mx-auto">
           <li class="nav-item">
             <router-link class="nav-link" to="/">Home</router-link>
-          </li>
-          <li v-if="authStore.isUserLogged" class="nav-item">
-            <router-link class="nav-link" to="/messages">Abrir Conversa</router-link>
-          </li>
-          <li v-if="authStore.isUserLogged" class="nav-item">
-            <router-link class="nav-link" to="/tickets/history">Meus Tickets</router-link>
           </li>
         </ul>
         <div

@@ -1,4 +1,4 @@
-import { loginUser, validateToken } from "@/services/AuthService";
+import { loginUser, validateToken } from "@/services/authService";
 import { defineStore } from "pinia";
 
 export const useAuthStore = defineStore("auth", {
@@ -34,8 +34,7 @@ export const useAuthStore = defineStore("auth", {
       localStorage.removeItem("user");
     },
     async validateToken() {
-      const token = this.user?.token;
-      return await validateToken(token);
+      return await validateToken();
     }
   },
 });

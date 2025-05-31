@@ -1,127 +1,157 @@
-// TODO: Add Button to Edit User
 <template>
   <div class="container mt-4">
-    <div class="card shadow mb-4 border-0" style="background-color: #f8f9fa">
-      <div class="card-body text-center">
-        <img
-          src="https://placehold.co/50x50.png"
-          alt="Foto do usuário"
-          class="rounded-circle mb-3 shadow"
-          style="width: 120px; height: 120px; border: 4px solid #dee2e6"
-        />
-        <h5 class="card-title text-secondary fw-bold">
-          {{ user.username }}
-          <i
-            class="bi bi-pencil-square btn btn-secondary p-2"
-            @click="redirectToUpdateUserPage"
-            role="button"
-            title="Atualizar Cadastro"
-          >
-          </i>
-        </h5>
-        <p class="card-text text-muted">{{ user.roles.join(" | ") }}</p>
-      </div>
-    </div>
-
-    <div
-      v-if="user.roles.includes('user')"
-      class="card shadow border-0"
-      style="background-color: #f8f9fa"
-    >
-      <div class="card-body">
-        <h5 class="card-title text-secondary fw-bold">Atendimentos do Usuário</h5>
-        <ul class="list-group list-group-flush">
-          <li
-            v-for="ticket in userTicketsList"
-            :key="ticket.id"
-            class="list-group-item d-flex justify-content-between align-items-center"
-            style="background-color: #f8f9fa; border: none"
-          >
-            <div>
-              <small class="text-muted">{{ formatDateTime(ticket.timestamp) }}</small>
-            </div>
-            <div
-              class="text-truncate text-secondary text-decoration-underline"
-              style="max-width: 70%"
-            >
-              <router-link
-                :to="{
-                  name: user.roles.includes('user') ? 'MessagesPage' : 'ReplyTicketPage',
-                  query: {
-                    ref: ticket.id,
-                  },
-                }"
-                class="text-truncate text-secondary"
-                style="max-width: 70%; cursor: pointer; text-decoration: none"
-              >
-                {{ truncateText(ticket.subject) }}
-              </router-link>
-            </div>
-            <div class="d-flex">
-              <button
-                class="btn btn-outline-primary btn-sm me-2"
-                @click="goToMessages(ticket.id)"
-                title="Ver Mensagens"
-              >
-                <i class="bi bi-chat-dots"></i>
-              </button>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
+    <StaffPanel v-if="showStaffContent" @display-area="handleDisplayArea" />
+    <LoadingComponent v-if="loading" />
+    <TicketsBoard
+      v-if="displayArea === 'pending' && showStaffContent"
+      :boardTitle="boardsTitles.pendingTickets"
+      :tickets="pendingTicketsList"
+      @view-messages="goToMessages"
+      @archive-ticket="archiveTicket"
+    />
+    <InteractionsBoard
+      v-if="displayArea === 'search' && showStaffContent"
+      :boardTitle="boardsTitles.interactions"
+      :interactions="interactionsList"
+      @view-messages="goToMessages"
+      @archive-ticket="archiveTicket"
+    />
+    <UserProfileCard v-if="displayArea === 'userArea' && showUserContent"
+    :user="user" />
+    <GenereateTIcketComponent v-if="showUserContent" />
+    <TicketsBoard
+      v-if="showUserContent"
+      :boardTitle="boardsTitles.userTickets"
+      :tickets="userTicketsList"
+      @view-messages="goToMessages"
+      @archive-ticket="archiveTicket"
+    />
   </div>
 </template>
 
 <script setup>
-import ticketService from "@/services/TicketService";
+import ticketService from "@/services/ticketService";
+import { getTicketsWithUserMessages } from "@/services/userService";
 import { useToast } from "vue-toastification";
 import { useRouter } from "vue-router";
 import { ref, onMounted } from "vue";
 import { useAuthStore } from "@/stores/authStore";
+import { computed } from "vue";
+import InteractionsBoard from "@/components/InteractionsBoard.vue";
+import TicketsBoard from "@/components/TicketsBoard.vue";
+import UserProfileCard from "@/components/UserProfileCard.vue";
+import StaffPanel from "@/components/StaffPanel.vue";
+import LoadingComponent from "@/components/LoadingComponent.vue";
+import GenereateTIcketComponent from "@/components/GenereateTIcketComponent.vue";
 
 const router = useRouter();
-const toast = useToast();
 const authStore = useAuthStore();
+const toast = useToast();
 
 const user = authStore.user;
-const filteredTickets = ref([]);
-const userTicketsList = ref([
-  {
-    id: 0,
-    timestamp: "2025-01-12T14:30:00",
-    subject:
-      "Suspendisse vehicula sapien felis, quis fermentum justo ultrices at. Ut ornare erat nec malesuada aliquet. Sed scelerisque, lorem eget maximus gravida, sem odio ultricies lectus, sit amet tincidunt tortor magna nec ex.",
-    status: "Aberta",
-  },
-]);
+const userTicketsList = ref([]);
+const interactionsList = ref([]);
+const pendingTicketsList = ref([]);
+
+const displayArea = ref(null);
+const loading = ref(false);
+const boardsTitles = {
+  userTickets: "Meus tickets",
+  pendingTickets: "Tickets de casos abertos",
+  interactions: "Histórico de Interações",
+};
 
 onMounted(async () => {
   try {
-    // TODO: Use Auth Bearer with token to send user id
     if (!user || !user.token) {
       toast.error("Falha na autenticação!", { timeout: 3000 });
       // Redirect user
     }
 
     if (user.roles.includes("user")) {
-      filteredTickets.value = await ticketService.getTickets(user.id);
-      loadUserData(filteredTickets.value);
-    } else {
-      console.log("Load pending tickets");
+      handleDisplayArea("userArea");
     }
   } catch (err) {
     console.log(err);
-    toast.error("Ocorreu um erro ao conectar com o servidor!", { timeout: 3000 });
+    toast.error("Ocorreu um erro ao conectar com o servidor!", {
+      timeout: 3000,
+    });
   }
 });
 
-const redirectToUpdateUserPage = () => {
-  router.push("/user/update");
+const goToMessages = (id) => {
+  router.push({
+    name: "MessagesPage",
+    query: {
+      ticketId: id,
+    },
+  });
 };
 
-const goToMessages = (ticketId) => {
-  console.log(ticketId);
+const archiveTicket = (id) => {
+  console.log("No logic to archive ticket:", id);
+};
+
+const showStaffContent = computed(() =>
+  ["admin", "manager", "support"].some((role) => user.roles.includes(role))
+);
+
+const showUserContent = computed(() =>
+  ["user"].some((role) => user.roles.includes(role))
+);
+
+const handleDisplayArea = async (areaName) => {
+  loading.value = true;
+  displayArea.value = null;
+
+  if (areaName === "pending") {
+    try {
+      const response = await ticketService.getPendingTickets();
+      if (response.status != 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      loadPendingTickets(response.data);
+      displayArea.value = "pending";
+    } catch (err) {
+      console.log("Failed to fetch data:", err);
+    } finally {
+      loading.value = false;
+    }
+  } else if (areaName === "search") {
+    try {
+      const response = await getTicketsWithUserMessages();
+
+      if (response.status != 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      loadInteractionsData(response.data);
+      displayArea.value = "search";
+    } catch (err) {
+      console.log("Failed to fetch data:", err);
+    } finally {
+      loading.value = false;
+    }
+  } else if (areaName === "userArea") {
+    try {
+      const response = await ticketService.getTickets();
+      if (response.status != 200) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      loadUserData(response.data);
+      displayArea.value = "userArea";
+    } catch (err) {
+      console.log("Failed to fetch data:", err);
+    } finally {
+      loading.value = false;
+    }
+  } else {
+    setTimeout(() => {
+      displayArea.value = areaName;
+      loading.value = false;
+    }, 800);
+  }
 };
 
 const loadUserData = (data = []) => {
@@ -136,23 +166,43 @@ const loadUserData = (data = []) => {
       id: item.id,
       subject: item.subject,
       status: statusMap[item.status] || "Desconhecido",
-      timestamp: item.created_at,
+      createdAt: item.createdAt,
     };
 
     userTicketsList.value.push(retrievedUserTicket);
   });
 };
 
-const formatDateTime = (dateTime) => {
-  const date = new Date(dateTime);
-  return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
+const loadPendingTickets = (data = []) => {
+  data.forEach((item) => {
+    const retrievedUserTicket = {
+      id: item.id,
+      subject: item.subject,
+      status: item.status,
+      createdAt: item.createdAt,
+    };
+
+    pendingTicketsList.value.push(retrievedUserTicket);
+  });
 };
 
-const truncateText = (text) => {
-  return text.length > 30 ? text.slice(0, 30) + "..." : text;
+const loadInteractionsData = (data = []) => {
+  data.forEach((item) => {
+    const statusMap = {
+      open: "Aberta",
+      closed: "Fechada",
+      in_progress: "Em andamento",
+    };
+
+    const retrievedUserTicket = {
+      id: item.id,
+      subject: item.subject,
+      status: statusMap[item.status] || "Desconhecido",
+      createdAt: item.createdAt ?? new Date().toISOString(),
+    };
+
+    interactionsList.value.push(retrievedUserTicket);
+  });
 };
 </script>
 
@@ -160,13 +210,22 @@ const truncateText = (text) => {
 .container {
   max-width: 600px;
 }
+
 .card {
   border-radius: 12px;
 }
+
 .list-group-item {
   border-bottom: 1px solid #dee2e6;
 }
+
 .list-group-item:last-child {
   border-bottom: none;
+}
+
+.subject-link {
+  max-width: 70%;
+  cursor: pointer;
+  text-decoration: none;
 }
 </style>
